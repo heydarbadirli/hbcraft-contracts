@@ -12,7 +12,8 @@ The contract allows to launch a staking program and to create an unlimited numbe
 Each pool can have:
 - Its minimum deposit and APY properties adjusted independently.
 - Statuses (open or close) for staking, withdrawal, and interest claims controlled independently.
-- **Staking Target:** The program has a common staking target. When the total staked tokens across all pools reach this target, further staking is disabled, but the staking target can be adjusted if needed.
+
+**Staking Target:** The program has a common staking target. When the total staked tokens across all pools reach this target, further staking is disabled, but the staking target can be adjusted if needed.
 
 
 ## Supported Tokens
