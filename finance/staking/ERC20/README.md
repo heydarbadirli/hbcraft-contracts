@@ -133,7 +133,7 @@ The following functions allow both the contract owner and contract administrator
 |:-------------------------------------|:-----------|:--------------------------|:---------------|
 | `checkAPY`                           | **0**      | None                      | `uint256[]`    |
 | `checkDefaultMinimumDeposit`         | **0**      | None                      | `uint256`      |
-| `checkDepositCountOfAddress`         | **1**      | `address addressInput`    | `uint256[]`    |
+| `checkDepositCountOfAddress`         | **0**      | `address addressInput`    | `uint256[]`    |
 | `checkIfInterestClaimOpen`           | **0**      | None                      | `bool[]`       |
 | `checkIfStakingOpen`                 | **0**      | None                      | `bool[]`       |
 | `checkIfWithdrawalOpen`              | **0**      | None                      | `bool[]`       |
