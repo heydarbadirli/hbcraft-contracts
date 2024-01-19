@@ -5,8 +5,11 @@ The contract allows to launch a staking program and to create an unlimited numbe
 
 
 ### Key Features
-- **Multiple Staking Pools:** Ability to create numerous locked or flexible staking pools.
-- **Customizable Pool Properties:** Each pool can have:
+**Multiple Staking Pools:**
+- Ability to create numerous locked or flexible staking pools.
+
+**Customizable Pool Properties:**
+Each pool can have:
 - Its minimum deposit and APY properties adjusted independently.
 - Statuses (open or close) for staking, withdrawal, and interest claims controlled independently.
 - **Staking Target:** The program has a common staking target. When the total staked tokens across all pools reach this target, further staking is disabled, but the staking target can be adjusted if needed.
@@ -66,8 +69,8 @@ The contract owner can manage the program's overall functioning or configure sta
 > *The `launchDefault` function requires a single parameter called `lockedAndFlexibleAPY`, which is an array of two uint256 values. The first number in this array represents the APY for the locked staking pool, while the second number indicates the APY for the flexible staking pool.
 
 > **The predefined settings for the staking program are:
-  1. Both staking and interest claiming is open for locked and flexible pools.
-  2. Withdrawal is open for flexible pools, but closed for locked pools.
+>  1. Both staking and interest claiming is open for locked and flexible pools.
+>  2. Withdrawal is open for flexible pools, but closed for locked pools.
 
 
 The functions listed below enable the contract owner to modify specific variables and properties of the contract:
@@ -128,7 +131,7 @@ The following functions allow both the contract owner and contract administrator
 |:-------------------------------------|:-----------|:--------------------------|:---------------|
 | `checkAPY`                           | **0**      | None                      | `uint256[]`    |
 | `checkDefaultMinimumDeposit`         | **0**      | None                      | `uint256`      |
-| `checkDepositCountOfAddress`         | **0**      | `address addressInput`    | `uint256[]`    |
+| `checkDepositCountOfAddress`         | **1**      | `address addressInput`    | `uint256[]`    |
 | `checkIfInterestClaimOpen`           | **0**      | None                      | `bool[]`       |
 | `checkIfStakingOpen`                 | **0**      | None                      | `bool[]`       |
 | `checkIfWithdrawalOpen`              | **0**      | None                      | `bool[]`       |
@@ -147,9 +150,13 @@ The following functions allow both the contract owner and contract administrator
 | `checkInterestProvidedByAddress`     | **1**      | `address userAddress`     | `uint256`      |
 | `checkTotalFundCollected`            | **1**      | None                      | `uint256[]`    |
 
+- **Enum `PoolType`:** Defines the type of a staking pool.
+  ```solidity
+  enum PoolType { LOCKED, FLEXIBLE }
+  ```
 
 ## :gear: Initial Configuration
-Upon deployment of the `Staking` contract, the following parameters are set:
+Upon deployment of the `ERC20Staking` contract, the following parameters are set:
 
 ```solidity
 constructor(){
@@ -158,7 +165,7 @@ constructor(){
         stakingToken = IERC20(`YOUR TOKEN CONTRACT ADDRESS`); // The address of the ERC20 token that will be used by program contract.
         stakingTarget = `YOUR TOKEN AMOUNT` ether; // This represents the contract's staking goal.
 
-        defaultMinimumDeposit = `YOUR TOKEN AMOUNT` ether; // Used to determine staking pool properties when the program launched with 'launchDefault' function.
+        defaultMinimumDeposit = `YOUR TOKEN AMOUNT` ether; // Used to determine staking pool properties when the program is launched with `launchDefault` function.
     }
 ```
 
@@ -176,3 +183,8 @@ You can install the OpenZeppelin contracts by running:
 ```bash
 npm install @openzeppelin/contracts
 ```
+
+
+## License
+The contract is released under the [CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
+You are authorized to use, modify, and distribute, provided that appropriate credit to **HB Craft** is maintained.
