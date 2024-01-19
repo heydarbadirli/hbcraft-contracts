@@ -53,6 +53,7 @@ The contract owner can manage the program's overall functioning or configure sta
   *The predefined settings for the staking program are:
   1. Both staking and interest claiming is open for locked and flexible pools.
   2. Withdrawal is open for flexible pools, but closed for locked pools.
+  ```
 
 
 The functions listed below enable the contract owner to modify specific variables and properties of the contract:
