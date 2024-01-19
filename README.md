@@ -1,28 +1,40 @@
 # ERC20 Staking v1.0 by HB Craft
 
-## Overview
-The contract allows the launching of a staking program and the creation of an unlimited number of staking pools inside the program, which can be either locked or flexible. All pools use the designated ERC20 token assigned during program deployment inside the constructor function.
+## Introduction
+The contract allows to launch a staking program and to create an unlimited number of staking pools inside the program, which can be either locked or flexible. All pools use the designated ERC20 token assigned during program deployment inside the `constructor` function.
+
 
 ### Key Features
-- **Multiple Staking Pools:** Ability to create numerous staking pools in Locked and Flexible formats.
-- **Staking Target:** The program has a common staking target. When the total staked tokens across all pools reach this target, further staking is disabled.
-controllable statuses for staking, withdrawal, and interest claims.
-- **Customizable Pool Properties:** Each pool can have its minimum deposit and APY settings adjusted and statuses for staking, withdrawal, and interest claims controlled independently.
+- **Multiple Staking Pools:** Ability to create numerous locked or flexible staking pools.
+- **Customizable Pool Properties:** Each pool can have:
+- Its minimum deposit and APY properties adjusted independently.
+- Statuses (open or close) for staking, withdrawal, and interest claims controlled independently.
+- **Staking Target:** The program has a common staking target. When the total staked tokens across all pools reach this target, further staking is disabled, but the staking target can be adjusted if needed.
 
-## Supported Currencies
-The contract was initially written for RMV token staking. However, it supports various ERC20 tokens with 18 decimals. Non-ERC20 tokens are not supported. Users earn interest in the token they have staked in.
+
+## Supported Tokens
+The contract was initially written for RMV token staking. However, it supports various ERC20 tokens with 18 decimals. Non-ERC20 tokens are not supported. Users earn interest in the token they staked in.
+
 
 ## User Experience
 **Staking:**
-- Users can stake ERC20 tokens in various pools, each with distinct rules and rewards.
-- Stakers have the flexibility to stake their tokens as many times as in any amount (higher than the minimum deposit requirement) they wish in the target staking pool.
-- Each time a staker stakes in a pool, a unique deposit is created and added to the deposit list of the user within that specific staking pool with the staking date and the APY that the staking pool had at the time of staking. This means that the returns on each deposit are calculated based on the APY the pool had at the moment of staking.
-**Interest Claim:**
-- Interest on deposits is calculated on a daily basis. This ensures that the returns are updated daily, reflecting the staked tokens' most current valuation.
+- Users can stake their tokens in various pools, each with distinct rules and rewards.
+- Users have the flexibility to stake their tokens as many times as and in any amount (higher than the minimum deposit requirement) they wish in any created staking pool.
+- Each time a user stakes in a pool, a unique deposit is created and added to the deposit list of the user within that specific staking pool with the staking date and the APY that the staking pool had at the time of staking. This means that the returns on each deposit are calculated based on the APY the pool had at the moment of staking.
+
+#### :warning:
+- When a user interacts with the **program contract** for **staking**, **providing interest**, or **restoring funds**, please be aware that although the user initiates the transaction, the **program contract** technically carries out the expenditure. So, the user can get an **allowance too low** error, and the transaction can fail if the user doesn't interact with the **token contract** and approves the **program contract address** as a **spender** before interacting with the program contract.
+- For this reason, before the user interacts with the program contract for these purposes, your application must take a crucial step to ensure that the user interacts with the **token contract** by calling the `increaseAllowance(spender, addedValue)` function of the **token contract**. This will allow the program contract to carry out the expenditure and ensure the smooth and proper functionality.
+
+
+- **Interest Claim:**
+- Interest is calculated on a daily basis.
 - Stakers have the option to claim their accrued interest daily. This provides flexibility and frequent access to earned interests.
 - When interest is claimed, it is automatically calculated, collected from the common interest pool and sent to the staker if there are enough tokens in the interest pool.
-**Withdrawal:**
-- When a user decides to withdraw a deposit, the interest accrued on that deposit is also claimed simultaneously. The withdrawal action triggers the collection of both the principal deposit and the accrued interest. The total amount, comprising the original deposit and the interest earned, is then transferred to the user's account.
+
+- **Withdrawal:**
+- When a staker decides to withdraw a deposit, the interest accrued on that deposit is also claimed simultaneously. The withdrawal action triggers both the withdrawal and the interest claim.
+
 
 ## Access Control
 The contract implements an access control system with distinct roles. Functionalities are restricted based on access levels. The system ensures that access to data and execution of functions are strictly regulated.
@@ -30,6 +42,7 @@ The contract implements an access control system with distinct roles. Functional
 - **Enum `AccessTier`:** Defines the different access levels within the contract.
   ```solidity
   enum AccessTier { USER, ADMIN, OWNER }
+  ```
 
 | Name                          | Value / Tier | Description                                                      |
 |:------------------------------|:-------------|:-----------------------------------------------------------------|
@@ -44,16 +57,16 @@ The contract owner can manage the program's overall functioning or configure sta
 
 | Function                          | Access Tier | Description |
 |:----------------------------------|:------------|:------------|
-| `launchDefault`                   | **2**       | Launches the staking program with two new staking pools, 1 locked, 1 flexible. |
-| `pauseProgram`                    | **2**       | Pauses staking, withdrawal and interest claim activities for all pools. |
+| `launchDefault`                   | **2**       | Launches the staking program with two new staking pools, 1 locked and 1 flexible. |
+| `pauseProgram`                    | **2**       | Pauses staking, withdrawal, and interest claim activities for all pools. |
 | `resumeProgram`                   | **2**       | Resumes the staking program with predefined settings.* |
-| `endProgram`                      | **2**       | Ends the staking program, closes staking, opens withdrawal and interest claiming for all the pools and sets the program end date to the current timestamp. |
+| `endProgram`                      | **2**       | Ends the staking program, closes staking, opens the withdrawal and interest claiming for all the pools, and sets the program end date to the current timestamp. |
 
-  ```solidity
-  *The predefined settings for the staking program are:
+> *The `launchDefault` function requires a single parameter called `lockedAndFlexibleAPY`, which is an array of two uint256 values. The first number in this array represents the APY for the locked staking pool, while the second number indicates the APY for the flexible staking pool.
+
+> **The predefined settings for the staking program are:
   1. Both staking and interest claiming is open for locked and flexible pools.
   2. Withdrawal is open for flexible pools, but closed for locked pools.
-  ```
 
 
 The functions listed below enable the contract owner to modify specific variables and properties of the contract:
@@ -63,6 +76,9 @@ The functions listed below enable the contract owner to modify specific variable
 | `setPoolAPY`                      | **2**       | Sets the Annual Percentage Yield (APY) for a specific pool. | `uint256 poolID` `uint256 newAPY`        |
 | `setDefaultMinimumDeposit`        | **2**       | Sets the default minimum deposit amount.              | `uint256 newDefaultMinimumDeposit`      |
 | `setStakingTarget`                | **2**       | Sets the staking target for the contract.             | `uint128 newStakingTarget`              |
+
+> *Note:* When a new staking pool is created, it is added to the array of staking pools. Each pool has a unique identifier, called poolID. This ID is essentially the index of the pool within the array. The numbering for poolID starts from zero and increments sequentially with each new pool addition. This means the first pool created will have a poolID of 0, the second pool will have a poolID of 1, and so on.
+
 
 ### Contract Admins
 The contract owner has the ability to assign contract admins, and they are also authorized to adjust individual pool parameters like minimum staking amount, staking duration, and interest rates.
@@ -82,8 +98,9 @@ The following functions allow both the contract owner and contract administrator
 | `changePoolAvailabilityStatus`    | **1**       | Changes the availability status of a specific staking pool. | `uint256 poolID` `PoolDataType parameterToChange` `bool valueToAssign` |
 | `setPoolMiniumumDeposit`          | **1**       | Sets the minimum deposit amount for a specific pool.  | `uint256 poolID` `uint256 newMinimumDepositAmount` |
 
-## Fund Management
-- Contract owners and admins can collect and redeploy tokens staked in the pools if needed.
+
+## Staking Fund Management
+- Contract owners and admins can collect and restore the tokens staked in the pools if needed.
 
 | Function                          | Access Tier | Description                                           | Parameters                              |
 |:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
@@ -91,6 +108,7 @@ The following functions allow both the contract owner and contract administrator
 | `restoreFunds`                    | **1**       | Restores collected funds to a specified pool.         | `uint256 poolID` `uint256 etherAmount`   |
 
 
+## Interest Pool Management
 - Interests for all pools are sourced from a common interest pool.
 - To enable stakers to claim interests, tokens must be transferred to the program's interest pool by the owner or admins.
 - If necessary, tokens from the interest pool can be collected back by the admins or the owner.
@@ -130,21 +148,10 @@ The following functions allow both the contract owner and contract administrator
 
 
 ## Dependencies
-This project uses OpenZeppelin contracts for enhanced security and standardized features.
+This project uses OpenZeppelin contracts for enhanced security and standardized features. If you are going to use a JavaScript-based development environment, such as Truffle or Hardhat, instead of Remix IDE for contract deployment, you might need to install necessary dependencies.
 
-### Installation
-To use these contracts, the OpenZeppelin contracts library needs to be installed in your project.
-
-#### Using npm
-If you are using `npm` for package management, install the OpenZeppelin contracts by running:
+You can install the OpenZeppelin contracts by running:
 
 ```bash
 npm install @openzeppelin/contracts
-```
-
-#### Using yarn
-If you are using yarn, you can install them by running:
-
-```bash
-yarn add @openzeppelin/contracts
 ```
