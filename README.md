@@ -22,17 +22,18 @@ The contract was initially written for RMV token staking. However, it supports v
 - Users have the flexibility to stake their tokens as many times as and in any amount (higher than the minimum deposit requirement) they wish in any created staking pool.
 - Each time a user stakes in a pool, a unique deposit is created and added to the deposit list of the user within that specific staking pool with the staking date and the APY that the staking pool had at the time of staking. This means that the returns on each deposit are calculated based on the APY the pool had at the moment of staking.
 
-#### :warning:
+#### :warning: Warning
 - When a user interacts with the **program contract** for **staking**, **providing interest**, or **restoring funds**, please be aware that although the user initiates the transaction, the **program contract** technically carries out the expenditure. So, the user can get an **allowance too low** error, and the transaction can fail if the user doesn't interact with the **token contract** and approves the **program contract address** as a **spender** before interacting with the program contract.
 - For this reason, before the user interacts with the program contract for these purposes, your application must take a crucial step to ensure that the user interacts with the **token contract** by calling the `increaseAllowance(spender, addedValue)` function of the **token contract**. This will allow the program contract to carry out the expenditure and ensure the smooth and proper functionality.
 
 
-- **Interest Claim:**
+**Interest Claim:**
 - Interest is calculated on a daily basis.
 - Stakers have the option to claim their accrued interest daily. This provides flexibility and frequent access to earned interests.
 - When interest is claimed, it is automatically calculated, collected from the common interest pool and sent to the staker if there are enough tokens in the interest pool.
 
-- **Withdrawal:**
+
+ **Withdrawal:**
 - When a staker decides to withdraw a deposit, the interest accrued on that deposit is also claimed simultaneously. The withdrawal action triggers both the withdrawal and the interest claim.
 
 
@@ -145,6 +146,26 @@ The following functions allow both the contract owner and contract administrator
 | `checkInterestPool`                  | **1**      | None                      | `uint256`      |
 | `checkInterestProvidedByAddress`     | **1**      | `address userAddress`     | `uint256`      |
 | `checkTotalFundCollected`            | **1**      | None                      | `uint256[]`    |
+
+
+## :gear: Initial Configuration
+Upon deployment of the `Staking` contract, the following parameters are set:
+
+```solidity
+constructor(){
+        contractOwner = msg.sender;
+
+        stakingToken = IERC20(`YOUR TOKEN CONTRACT ADDRESS`); // The address of the ERC20 token that will be used by program contract.
+        stakingTarget = `YOUR TOKEN AMOUNT` ether; // This represents the contract's staking goal.
+
+        defaultMinimumDeposit = `YOUR TOKEN AMOUNT` ether; // Used to determine staking pool properties when the program launched with 'launchDefault' function.
+    }
+```
+
+After the contract is deployed:
+
+- `defaultMinimumDeposit` and `stakingTarget` can be **adjusted** as needed to adapt to new staking strategies.
+- `stakingToken` address is **fixed** upon deployment and cannot be changed later to ensure security and consistency.
 
 
 ## Dependencies
