@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: CC-BY-4.0
+// Copyright 2024 HB Craft.
+
+
+pragma solidity ^0.8.0;
+
+
+import "../ComplianceCheck.sol";
+
+
+contract WriteFunctions is ComplianceCheck {
+    function _updateStakerBalance(ActionType action, uint256 poolID, address userAddress, uint256 tokenAmount) private {
+        StakingPool storage targetPool = stakingPoolList[poolID];
+        if (action == ActionType.STAKING) {
+            targetPool.stakerList[userAddress] += tokenAmount;
+            targetPool.totalList[DataType.STAKED] += tokenAmount;
+        } else if (action == ActionType.WITHDRAWAL) {
+            targetPool.stakerList[userAddress] -= tokenAmount;
+            targetPool.totalList[DataType.STAKED] -= tokenAmount;
+
+            targetPool.withdrawerList[userAddress] += tokenAmount;
+            targetPool.totalList[DataType.WITHDREW] += tokenAmount;
+        } else if (action == ActionType.INTEREST_CLAIM) {
+            targetPool.interestClaimerList[userAddress] += tokenAmount;
+            targetPool.totalList[DataType.INTEREST_CLAIMED] += tokenAmount;
+        }
+    }
+
+    function _updatePoolData(ActionType action, uint256 poolID, address userAddress, uint256 depositNumber, uint256 tokenAmount) internal {
+        StakingPool storage targetPool = stakingPoolList[poolID];
+        TokenDeposit[] storage targetDepositList = targetPool.stakerDepositList[userAddress];
+
+        if (action == ActionType.STAKING) {
+            targetDepositList.push(TokenDeposit(block.timestamp, 0, tokenAmount, targetPool.APY, 0));
+            _updateStakerBalance(action, poolID, userAddress, tokenAmount);
+        } else if (action == ActionType.WITHDRAWAL) {
+            TokenDeposit storage targetDeposit = targetDepositList[depositNumber];
+            targetDeposit.withdrawalDate = block.timestamp;
+            _updateStakerBalance(action, poolID, userAddress, tokenAmount);
+        } else if (action == ActionType.INTEREST_CLAIM) {
+            TokenDeposit storage targetDeposit = targetDepositList[depositNumber];
+            targetDeposit.claimedInterest += tokenAmount;
+            _updateStakerBalance(action, poolID, userAddress, tokenAmount);
+        }
+    }
+}
