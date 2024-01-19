@@ -60,7 +60,7 @@ The functions listed below enable the contract owner to modify specific variable
 
 | Function                          | Access Tier | Description                                           | Parameters                              |
 |:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `setPoolAPY`                      | **2**       | Sets the Annual Percentage Yield (APY) for a specific pool. | `uint256 poolID, uint256 newAPY`        |
+| `setPoolAPY`                      | **2**       | Sets the Annual Percentage Yield (APY) for a specific pool. | `uint256 poolID` `uint256 newAPY`        |
 | `setDefaultMinimumDeposit`        | **2**       | Sets the default minimum deposit amount.              | `uint256 newDefaultMinimumDeposit`      |
 | `setStakingTarget`                | **2**       | Sets the staking target for the contract.             | `uint128 newStakingTarget`              |
 
@@ -79,16 +79,16 @@ The following functions allow both the contract owner and contract administrator
 
 | Function                          | Access Tier | Description                                           | Parameters                              |
 |:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `changePoolAvailabilityStatus`    | **1**       | Changes the availability status of a specific staking pool. | `uint256 poolID, PoolDataType parameterToChange, bool valueToAssign` |
-| `setPoolMiniumumDeposit`          | **1**       | Sets the minimum deposit amount for a specific pool.  | `uint256 poolID, uint256 newMinimumDepositAmount` |
+| `changePoolAvailabilityStatus`    | **1**       | Changes the availability status of a specific staking pool. | `uint256 poolID` `PoolDataType parameterToChange` `bool valueToAssign` |
+| `setPoolMiniumumDeposit`          | **1**       | Sets the minimum deposit amount for a specific pool.  | `uint256 poolID` `uint256 newMinimumDepositAmount` |
 
 ## Fund Management
 - Contract owners and admins can collect and redeploy tokens staked in the pools if needed.
 
 | Function                          | Access Tier | Description                                           | Parameters                              |
 |:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `collectFunds`                    | **1**       | Collects staked funds from a specified pool.          | `uint256 poolID, uint256 etherAmount`   |
-| `restoreFunds`                    | **1**       | Restores collected funds to a specified pool.         | `uint256 poolID, uint256 etherAmount`   |
+| `collectFunds`                    | **1**       | Collects staked funds from a specified pool.          | `uint256 poolID` `uint256 etherAmount`   |
+| `restoreFunds`                    | **1**       | Restores collected funds to a specified pool.         | `uint256 poolID` `uint256 etherAmount`   |
 
 
 - Interests for all pools are sourced from a common interest pool.
@@ -105,25 +105,46 @@ The following functions allow both the contract owner and contract administrator
 - The program keeps detailed data of stakers, withdrawers, interest claimers, fund collectors, fund restorers, interest providers, and interest collectors in each pool.
 - Information access is also tier-based, allowing for easy data retrieval depending on your access level.
 
-| Function                             | Parameters                | Returns        | AccessTier |
-|:-------------------------------------|:--------------------------|:---------------|:-----------|
-| `checkAPY`                           | None                      | `uint256[]`    | **0**      |
-| `checkDefaultMinimumDeposit`         | None                      | `uint256`      | **0**      |
-| `checkDepositCountOfAddress`         | `address addressInput`    | `uint256[]`    | **0**      |
-| `checkIfInterestClaimOpen`           | None                      | `bool[]`       | **0**      |
-| `checkIfStakingOpen`                 | None                      | `bool[]`       | **0**      |
-| `checkIfWithdrawalOpen`              | None                      | `bool[]`       | **0**      |
-| `checkInterestClaimedByAddress`      | `address addressInput`    | `uint256[]`    | **0**      |
-| `checkPoolType`                      | None                      | `PoolType[]`   | **0**      |
-| `checkStakedAmountByAddress`         | `address addressInput`    | `uint256[]`    | **0**      |
-| `checkStakingTarget`                 | None                      | `uint256`      | **0**      |
-| `checkTotalInterestClaimed`          | None                      | `uint256[]`    | **0**      |
-| `checkTotalStaked`                   | None                      | `uint256[]`    | **0**      |
-| `checkTotalWithdrew`                 | None                      | `uint256[]`    | **0**      |
-| `checkWithdrewAmountByAddress`       | `address addressInput`    | `uint256[]`    | **0**      |
-| `checkYourAccessTier`                | None                      | `AccessTier`   | **0**      |
-| `checkCollectedFundsByAddress`       | `address addressInput`    | `uint256[]`    | **1**      |
-| `checkInterestCollectedByAddress`    | `address userAddress`     | `uint256`      | **1**      |
-| `checkInterestPool`                  | None                      | `uint256`      | **1**      |
-| `checkInterestProvidedByAddress`     | `address userAddress`     | `uint256`      | **1**      |
-| `checkTotalFundCollected`            | None                      | `uint256[]`    | **1**      |
+| Function                             | AccessTier | Parameters                | Returns        |
+|:-------------------------------------|:-----------|:--------------------------|:---------------|
+| `checkAPY`                           | **0**      | None                      | `uint256[]`    |
+| `checkDefaultMinimumDeposit`         | **0**      | None                      | `uint256`      |
+| `checkDepositCountOfAddress`         | **0**      | `address addressInput`    | `uint256[]`    |
+| `checkIfInterestClaimOpen`           | **0**      | None                      | `bool[]`       |
+| `checkIfStakingOpen`                 | **0**      | None                      | `bool[]`       |
+| `checkIfWithdrawalOpen`              | **0**      | None                      | `bool[]`       |
+| `checkInterestClaimedByAddress`      | **0**      | `address addressInput`    | `uint256[]`    |
+| `checkPoolType`                      | **0**      | None                      | `PoolType[]`   |
+| `checkStakedAmountByAddress`         | **0**      | `address addressInput`    | `uint256[]`    |
+| `checkStakingTarget`                 | **0**      | None                      | `uint256`      |
+| `checkTotalInterestClaimed`          | **0**      | None                      | `uint256[]`    |
+| `checkTotalStaked`                   | **0**      | None                      | `uint256[]`    |
+| `checkTotalWithdrew`                 | **0**      | None                      | `uint256[]`    |
+| `checkWithdrewAmountByAddress`       | **0**      | `address addressInput`    | `uint256[]`    |
+| `checkYourAccessTier`                | **0**      | None                      | `AccessTier`   |
+| `checkCollectedFundsByAddress`       | **1**      | `address addressInput`    | `uint256[]`    |
+| `checkInterestCollectedByAddress`    | **1**      | `address userAddress`     | `uint256`      |
+| `checkInterestPool`                  | **1**      | None                      | `uint256`      |
+| `checkInterestProvidedByAddress`     | **1**      | `address userAddress`     | `uint256`      |
+| `checkTotalFundCollected`            | **1**      | None                      | `uint256[]`    |
+
+
+## Dependencies
+This project uses OpenZeppelin contracts for enhanced security and standardized features.
+
+### Installation
+To use these contracts, the OpenZeppelin contracts library needs to be installed in your project.
+
+#### Using npm
+If you are using `npm` for package management, install the OpenZeppelin contracts by running:
+
+```bash
+npm install @openzeppelin/contracts
+```
+
+#### Using yarn
+If you are using yarn, you can install them by running:
+
+```bash
+yarn add @openzeppelin/contracts
+```
