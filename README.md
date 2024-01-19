@@ -1,10 +1,10 @@
-# ERC20 Staking V1.0 by HB Craft
+# ERC20 Staking v1.0 by HB Craft
 
 ## Overview
-The contract allows the launching of a staking program and the creation of an unlimited number of staking pools inside the program, which can be either locked or flexible. All pools operate using a designated ERC20 token assigned during program deployment inside the constructor function.
+The contract allows the launching of a staking program and the creation of an unlimited number of staking pools inside the program, which can be either locked or flexible. All pools use the designated ERC20 token assigned during program deployment inside the constructor function.
 
 ## Supported Currencies
-The contract was initially written for RMV token staking. However, it supports various ERC20 tokens with 18 decimals. Non-ERC20 tokens are not supported. Users stake earn interest in the token they have staked in.
+The contract was initially written for RMV token staking. However, it supports various ERC20 tokens with 18 decimals. Non-ERC20 tokens are not supported. Users earn interest in the token they have staked in.
 
 ## Features
 - **Access Control:** The contract differentiates between various access levels: users (0), admins (1), and the contract owner (2), ensuring appropriate permissions and functionalities are assigned according to roles.
@@ -12,26 +12,15 @@ The contract was initially written for RMV token staking. However, it supports v
 ## Access Control
 The contract implements an access control system with distinct roles to ensures that access to data and execution of functions are strictly regulated.
 
+- **Enum `AccessTier`:** Defines the different access levels within the contract.
+  ```solidity
+  enum AccessTier { USER, ADMIN, OWNER }
+
 | Name                          | Value / Tier | Description                                                      |
 |:------------------------------|:-------------|:-----------------------------------------------------------------|
 | `AccessTier.USER`             | **0**        | Regular users with basic permissions.                            |
 | `AccessTier.ADMIN`            | **1**        | Administrators with extended privileges for specific functions.  |
 | `AccessTier.OWNER`            | **2**        | The contract owner with full control over all functions.         |
-
-    - `USER` (0): Regular users with basic permissions.
-    - `ADMIN` (1): Administrators with extended privileges for specific functions.
-    - `OWNER` (2): The contract owner with full control over all functions.
-
-
-
-## Custom Types
-- **Enum `AccessTier`:** Defines the hierarchy of access levels within the contract.
-  ```solidity
-  enum AccessTier { USER, ADMIN, OWNER }
-
-- **Enum `AccessTier`:** This enum defines the different access levels within the contract.
-  ```solidity
-  enum AccessTier { USER, ADMIN, OWNER }
 
 
 ## Administrative Controls
@@ -45,9 +34,9 @@ The contract owner can manage the program's overall functioning or configure sta
 | `resumeProgram`                   | **2**       | Resumes the staking program with predefined settings.* |
 | `endProgram`                      | **2**       | Ends the staking program, closes staking, opens withdrawal and interest claiming for all the pools and sets the program end date to the current timestamp. |
 
-> *The predefined settings for the staking program are:
-> 1. Both staking and interest claiming is open for locked and flexible pools.
-> 2. Withdrawal is open for flexible pools, but closed for locked pools.
+- *The predefined settings for the staking program are:
+- 1. Both staking and interest claiming is open for locked and flexible pools.
+- 2. Withdrawal is open for flexible pools, but closed for locked pools.
 
 
 The functions listed below enable the contract owner to modify specific variables and properties of the contract:
@@ -66,7 +55,7 @@ The contract owner has the ability to assign contract admins, and they are also 
 | `addContractAdmin`                | **2**       | Adds a new admin to the contract. Requires that the input address is not the contract owner. |
 | `removeContractAdmin`             | **2**       | Removes an existing admin. |
 
-> **Note:** Both the `addContractAdmin`and the `removeContractAdmin` functions require a single parameter `userAddress` (variable type: `address`).
+- **Note:** Both the `addContractAdmin`and the `removeContractAdmin` functions require a single parameter `userAddress` (variable type: `address`).
 
 
 The following functions allow both the contract owner and contract administrators to change specific variables and properties:
