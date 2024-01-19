@@ -87,7 +87,7 @@ The functions listed below enable the contract owner to modify specific variable
 
 
 ### Contract Admins
-The contract owner has the ability to assign contract admins, and they are also authorized to adjust individual pool parameters like minimum staking amount, staking duration, and interest rates.
+The contract owner has the ability to assign contract admins, and they are also authorized to adjust individual pool parameters like minimum staking amount or pool status.
 
 | Function                          | Access Tier | Description |
 |:----------------------------------|:------------|:------------------------------------------------------|
