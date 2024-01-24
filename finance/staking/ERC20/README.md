@@ -132,7 +132,7 @@ The following functions allow both the contract owner and contract administrator
 | Function                             | AccessTier | Parameters                                                      | Returns        |
 |:-------------------------------------|:-----------|:----------------------------------------------------------------|:---------------|
 | `checkAPY`                           | **0**      | None                                                            | `uint256[]`    |
-| `checkClaimableInterest`             | **0**      | `uint256 poolID` `address userAddress` `uint256 depositNumber`  | `uint256[]`    |
+| `checkClaimableInterest`             | **0**      | `uint256 poolID` `address userAddress` `uint256 depositNumber`  | `uint256`    |
 | `checkDefaultMinimumDeposit`         | **0**      | None                                                            | `uint256`      |
 | `checkDepositCountOfAddress`         | **0**      | `address addressInput`                                          | `uint256[]`    |
 | `checkIfInterestClaimOpen`           | **0**      | None                                                            | `bool[]`       |
