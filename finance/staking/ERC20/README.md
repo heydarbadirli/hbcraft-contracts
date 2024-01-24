@@ -129,28 +129,29 @@ The following functions allow both the contract owner and contract administrator
 - The program keeps detailed data of stakers, withdrawers, interest claimers, fund collectors, fund restorers, interest providers, and interest collectors in each pool.
 - Information access is also tier-based, allowing for easy data retrieval depending on your access level.
 
-| Function                             | AccessTier | Parameters                | Returns        |
-|:-------------------------------------|:-----------|:--------------------------|:---------------|
-| `checkAPY`                           | **0**      | None                      | `uint256[]`    |
-| `checkDefaultMinimumDeposit`         | **0**      | None                      | `uint256`      |
-| `checkDepositCountOfAddress`         | **0**      | `address addressInput`    | `uint256[]`    |
-| `checkIfInterestClaimOpen`           | **0**      | None                      | `bool[]`       |
-| `checkIfStakingOpen`                 | **0**      | None                      | `bool[]`       |
-| `checkIfWithdrawalOpen`              | **0**      | None                      | `bool[]`       |
-| `checkInterestClaimedByAddress`      | **0**      | `address addressInput`    | `uint256[]`    |
-| `checkPoolType`                      | **0**      | None                      | `PoolType[]`   |
-| `checkStakedAmountByAddress`         | **0**      | `address addressInput`    | `uint256[]`    |
-| `checkStakingTarget`                 | **0**      | None                      | `uint256`      |
-| `checkTotalInterestClaimed`          | **0**      | None                      | `uint256[]`    |
-| `checkTotalStaked`                   | **0**      | None                      | `uint256[]`    |
-| `checkTotalWithdrew`                 | **0**      | None                      | `uint256[]`    |
-| `checkWithdrewAmountByAddress`       | **0**      | `address addressInput`    | `uint256[]`    |
-| `checkYourAccessTier`                | **0**      | None                      | `AccessTier`   |
-| `checkCollectedFundsByAddress`       | **1**      | `address addressInput`    | `uint256[]`    |
-| `checkInterestCollectedByAddress`    | **1**      | `address userAddress`     | `uint256`      |
-| `checkInterestPool`                  | **1**      | None                      | `uint256`      |
-| `checkInterestProvidedByAddress`     | **1**      | `address userAddress`     | `uint256`      |
-| `checkTotalFundCollected`            | **1**      | None                      | `uint256[]`    |
+| Function                             | AccessTier | Parameters                                                      | Returns        |
+|:-------------------------------------|:-----------|:----------------------------------------------------------------|:---------------|
+| `checkAPY`                           | **0**      | None                                                            | `uint256[]`    |
+| `checkClaimableInterest`             | **0**      | `uint256 poolID` `address userAddress` `uint256 depositNumber`  | `uint256[]`    |
+| `checkDefaultMinimumDeposit`         | **0**      | None                                                            | `uint256`      |
+| `checkDepositCountOfAddress`         | **0**      | `address addressInput`                                          | `uint256[]`    |
+| `checkIfInterestClaimOpen`           | **0**      | None                                                            | `bool[]`       |
+| `checkIfStakingOpen`                 | **0**      | None                                                            | `bool[]`       |
+| `checkIfWithdrawalOpen`              | **0**      | None                                                            | `bool[]`       |
+| `checkInterestClaimedByAddress`      | **0**      | `address addressInput`                                          | `uint256[]`    |
+| `checkPoolType`                      | **0**      | None                                                            | `PoolType[]`   |
+| `checkStakedAmountByAddress`         | **0**      | `address addressInput`                                          | `uint256[]`    |
+| `checkStakingTarget`                 | **0**      | None                                                            | `uint256`      |
+| `checkTotalInterestClaimed`          | **0**      | None                                                            | `uint256[]`    |
+| `checkTotalStaked`                   | **0**      | None                                                            | `uint256[]`    |
+| `checkTotalWithdrew`                 | **0**      | None                                                            | `uint256[]`    |
+| `checkWithdrewAmountByAddress`       | **0**      | `address addressInput`                                          | `uint256[]`    |
+| `checkYourAccessTier`                | **0**      | None                                                            | `AccessTier`   |
+| `checkCollectedFundsByAddress`       | **1**      | `address addressInput`                                          | `uint256[]`    |
+| `checkInterestCollectedByAddress`    | **1**      | `address userAddress`                                           | `uint256`      |
+| `checkInterestPool`                  | **1**      | None                                                            | `uint256`      |
+| `checkInterestProvidedByAddress`     | **1**      | `address userAddress`                                           | `uint256`      |
+| `checkTotalFundCollected`            | **1**      | None                                                            | `uint256[]`    |
 
 - **Enum `PoolType`:** Defines the type of a staking pool.
   ```solidity
