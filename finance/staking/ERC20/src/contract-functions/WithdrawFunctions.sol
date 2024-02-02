@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC-BY-4.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
 
@@ -46,18 +46,20 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         depositAmount = deposit.amount;
         interestAlreadyClaimed = deposit.claimedInterest;
 
-        claimableInterest = ((depositAmount * ((depositAPY / 365) * daysPassed) / 100) - interestAlreadyClaimed) / 1 ether;
+        claimableInterest = (((depositAmount * ((depositAPY / 365) * daysPassed) / 100)) / tokenDecimals) - interestAlreadyClaimed;
         return claimableInterest;
     }
 
-    function checkClaimableInterest(uint256 poolID, address userAddress, uint256 depositNumber) external view
+    function checkClaimableInterest(address userAddress, uint256 poolID, uint256 depositNumber, bool withDecimals) external view
+    ifPoolExists(poolID)
+    personalDataAccess(userAddress)
     returns (uint256) {
-        return _calculateInterest(poolID, userAddress, depositNumber) / 1 ether;
+        return _calculateInterest(poolID, userAddress, depositNumber) / (withDecimals ? 1 : tokenDecimals);
     }
 
     function _processInterestClaim(uint256 poolID, address userAddress, uint256 depositNumber, bool isBatchClaim) private {
         uint256 interestToClaim = _calculateInterest(poolID, userAddress, depositNumber);
-        require(interestPool >= interestToClaim, "Not enough funds in the Interest Pool");
+        if (interestPool < interestToClaim){revert NotEnoughFundsInTheInterestPool(interestToClaim, interestPool);}
 
         if (interestToClaim == 0){
             if (isBatchClaim == false){
@@ -78,12 +80,14 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
     }
 
     function claimInterest(uint256 poolID, uint256 depositNumber) external
-    nonReentrant {
+    nonReentrant
+    ifPoolExists(poolID) {
         _processInterestClaim(poolID, msg.sender, depositNumber, false);
     }
 
     function claimAllInterest(uint256 poolID) external
-    nonReentrant {
+    nonReentrant
+    ifPoolExists(poolID) {
         for (uint256 depositNumber = 0; depositNumber < stakingPoolList[poolID].stakerDepositList[msg.sender].length; depositNumber++){
             _processInterestClaim(poolID, msg.sender, depositNumber, true);
         }
@@ -92,33 +96,43 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
     // ======================================
     // =    Withdraw Related Functions      =
     // ======================================
-    function _withdrawDeposit(uint256 poolID, uint256 depositNumber) private
+    function _withdrawDeposit(uint256 poolID, uint256 depositNumber, bool isBatchWithdrawal) private
     ifAvailable(poolID, PoolDataType.IS_WITHDRAWAL_OPEN)
     sufficientBalance(poolID)
     enoughFundsAvailable(poolID, stakingPoolList[poolID].stakerDepositList[msg.sender][depositNumber].amount) {
-        _claimInterest(poolID, msg.sender, depositNumber);
         TokenDeposit storage targetDeposit = stakingPoolList[poolID].stakerDepositList[msg.sender][depositNumber];
+        uint256 depositWithdrawalDate = targetDeposit.withdrawalDate;
 
-        // Update the staking pool balances
-        uint256 amountToWithdraw = targetDeposit.amount;
-        _updatePoolData(ActionType.WITHDRAWAL, poolID, msg.sender, depositNumber, amountToWithdraw);
+        if (depositWithdrawalDate != 0){
+            if (isBatchWithdrawal == false){
+                revert("Deposit already withdrawn");
+            } 
+        } else {
+            _claimInterest(poolID, msg.sender, depositNumber);
+                
+            // Update the staking pool balances
+            uint256 amountToWithdraw = targetDeposit.amount;
+            _updatePoolData(ActionType.WITHDRAWAL, poolID, msg.sender, depositNumber, amountToWithdraw);
 
-        _sendToken(msg.sender, amountToWithdraw);
-        emit Withdraw(msg.sender, poolID, stakingPoolList[poolID].poolType, depositNumber, amountToWithdraw);
+            _sendToken(msg.sender, amountToWithdraw);
+            emit Withdraw(msg.sender, poolID, stakingPoolList[poolID].poolType, depositNumber, amountToWithdraw);
+        }
     }
 
     function withdrawDeposit(uint256 poolID, uint256 depositNumber) external
-    nonReentrant {
-        _withdrawDeposit(poolID, depositNumber);
+    nonReentrant
+    ifPoolExists(poolID) {
+        _withdrawDeposit(poolID, depositNumber, false);
     }
 
     function withdrawAll(uint256 poolID) external
-    nonReentrant {
+    nonReentrant
+    ifPoolExists(poolID) {
         StakingPool storage targetPool = stakingPoolList[poolID];
         TokenDeposit[] storage targetDepositList = targetPool.stakerDepositList[msg.sender];
 
         for(uint128 depositNumber = 0; depositNumber < targetDepositList.length; depositNumber++){
-            _withdrawDeposit(poolID, depositNumber);
+            _withdrawDeposit(poolID, depositNumber, true);
         }
     }
 }

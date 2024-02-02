@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC-BY-4.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
 
@@ -25,19 +25,19 @@ contract AdministrativeFunctions is ComplianceCheck {
 
     function setStakingTarget(uint128 newStakingTarget) external
     onlyContractOwner {
-        stakingTarget = newStakingTarget * 1 ether;
+        stakingTarget = newStakingTarget * tokenDecimals;
     }
 
     function setDefaultMinimumDeposit(uint256 newDefaultMinimumDeposit) external
     onlyContractOwner {
-        defaultMinimumDeposit = newDefaultMinimumDeposit * 1 ether;
+        defaultMinimumDeposit = newDefaultMinimumDeposit * tokenDecimals;
     }
 
     // NOTICE: For testing purposes
-    /* function setProgramEndDate(uint256 dateInTimestamp) external
+    function setProgramEndDate(uint256 dateInTimestamp) external
     onlyContractOwner {
         programEndDate = dateInTimestamp;
-    } */
+    }
 
     function _addStakingPool(PoolType typeToSet, uint256 minimumDepositToSet, bool stakingAvailabilityStatusToCheck, uint256 APYToSet) private {
         // NOTICE: Adds a new, empty StakingPool instance to the stakingPoolList
@@ -56,7 +56,7 @@ contract AdministrativeFunctions is ComplianceCheck {
 
     function addStakingPool(PoolType typeToSet, uint256 minimumDepositToSet, bool stakingAvailabilityStatusToCheck, uint256 APYToSet) external 
     onlyContractOwner {
-        _addStakingPool(typeToSet, minimumDepositToSet * 1 ether, stakingAvailabilityStatusToCheck, APYToSet * 1 ether);
+        _addStakingPool(typeToSet, minimumDepositToSet * tokenDecimals, stakingAvailabilityStatusToCheck, APYToSet * tokenDecimals);
     }
 
     // DEV: Changes staking pool availabilty parameters to the predefined parameter settings
@@ -92,8 +92,8 @@ contract AdministrativeFunctions is ComplianceCheck {
         lockedAndFlexibleAPY[0] != 0 && lockedAndFlexibleAPY[1] != 0
         ), "APY has to be over 0!");
 
-        _addStakingPool(PoolType.LOCKED, defaultMinimumDeposit, true, lockedAndFlexibleAPY[0] * 1 ether);
-        _addStakingPool(PoolType.FLEXIBLE, defaultMinimumDeposit, true, lockedAndFlexibleAPY[1] * 1 ether);
+        _addStakingPool(PoolType.LOCKED, defaultMinimumDeposit, true, lockedAndFlexibleAPY[0] * tokenDecimals);
+        _addStakingPool(PoolType.FLEXIBLE, defaultMinimumDeposit, true, lockedAndFlexibleAPY[1] * tokenDecimals);
     }
 
     // NOTICE: Sets isStakingOpen parameter of all the staking pools to false
@@ -124,7 +124,7 @@ contract AdministrativeFunctions is ComplianceCheck {
         _changeAllPoolAvailabilityStatus(PoolDataType.IS_STAKING_OPEN, false);
         _changeAllPoolAvailabilityStatus(PoolDataType.IS_WITHDRAWAL_OPEN, true);
         _changeAllPoolAvailabilityStatus(PoolDataType.IS_INTEREST_CLAIM_OPEN, true);
-        programEndDate = uint128(block.timestamp);
+        programEndDate = block.timestamp;
     }
 
 
@@ -151,7 +151,7 @@ contract AdministrativeFunctions is ComplianceCheck {
 
     function setPoolAPY (uint256 poolID, uint256 newAPY) public
     onlyContractOwner {
-        uint256 APYValueToWei = newAPY * 1 ether;
+        uint256 APYValueToWei = newAPY * tokenDecimals;
         require(newAPY != stakingPoolList[poolID].APY, "The same as current APY");
 
         stakingPoolList[poolID].APY = APYValueToWei;
@@ -160,7 +160,7 @@ contract AdministrativeFunctions is ComplianceCheck {
 
     function setPoolMiniumumDeposit(uint256 poolID, uint256 newMinimumDepositAmount) external
     onlyAdmins {
-        stakingPoolList[poolID].minimumDeposit = newMinimumDepositAmount * 1 ether;
+        stakingPoolList[poolID].minimumDeposit = newMinimumDepositAmount * tokenDecimals;
     }
 
 
@@ -168,62 +168,62 @@ contract AdministrativeFunctions is ComplianceCheck {
     // =     FUND MANAGEMENT FUNCTIONS      =
     // ======================================
     // DEV: Collects staked funds from the target StakingPool
-    function collectFunds(uint256 poolID, uint256 etherAmount) external
+    function collectFunds(uint256 poolID, uint256 tokenAmount) external
     nonReentrant
     onlyAdmins
-    enoughFundsAvailable(poolID, etherAmount * 1 ether) {
-        uint256 etherToWeiAmount = etherAmount * 1 ether;
+    enoughFundsAvailable(poolID, tokenAmount * tokenDecimals) {
+        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
         StakingPool storage targetPool = stakingPoolList[poolID];
-        targetPool.fundCollectorList[msg.sender] += etherToWeiAmount;
-        targetPool.totalList[DataType.FUNDS_COLLECTED] += etherToWeiAmount;
+        targetPool.fundCollectorList[msg.sender] += amountWithDecimals;
+        targetPool.totalList[DataType.FUNDS_COLLECTED] += amountWithDecimals;
 
-        _sendToken(msg.sender, etherToWeiAmount);
-        emit CollectFunds(msg.sender, poolID, etherAmount);
+        _sendToken(msg.sender, amountWithDecimals);
+        emit CollectFunds(msg.sender, poolID, tokenAmount);
     }
 
     // DEV: Restores funds collected from the target StakingPool
-    function restoreFunds(uint256 poolID, uint256 etherAmount) external
+    function restoreFunds(uint256 poolID, uint256 tokenAmount) external
     nonReentrant
     onlyAdmins {
         StakingPool storage targetPool = stakingPoolList[poolID];
         uint256 remainingFundsToRestore = targetPool.totalList[DataType.FUNDS_COLLECTED] - targetPool.totalList[DataType.FUNDS_RESTORED];
 
-        uint256 etherToWeiAmount = etherAmount * 1 ether;
+        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
 
-        if (etherToWeiAmount > remainingFundsToRestore){
-            revert RestorationExceedsCollected(etherAmount, remainingFundsToRestore);
+        if (amountWithDecimals > remainingFundsToRestore){
+            revert RestorationExceedsCollected(tokenAmount, remainingFundsToRestore);
         }
 
-        _receiveToken(etherToWeiAmount);
+        _receiveToken(amountWithDecimals);
 
-        targetPool.fundRestorerList[msg.sender] += etherToWeiAmount;
-        targetPool.totalList[DataType.FUNDS_RESTORED] += etherToWeiAmount;
+        targetPool.fundRestorerList[msg.sender] += amountWithDecimals;
+        targetPool.totalList[DataType.FUNDS_RESTORED] += amountWithDecimals;
 
-        emit RestoreFunds(msg.sender, poolID, etherAmount);
+        emit RestoreFunds(msg.sender, poolID, tokenAmount);
     }
 
-    function collectInterestPoolFunds(uint256 etherAmount) external
+    function collectInterestPoolFunds(uint256 tokenAmount) external
     nonReentrant
     onlyAdmins
-    enoughFundsInInterestPool(etherAmount * 1 ether){
-        uint256 etherToWeiAmount = etherAmount * 1 ether;
+    enoughFundsInInterestPool(tokenAmount * tokenDecimals){
+        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
 
-        interestCollectorList[msg.sender] += etherToWeiAmount;
-        interestPool -= etherToWeiAmount;
+        interestCollectorList[msg.sender] += amountWithDecimals;
+        interestPool -= amountWithDecimals;
 
-        _sendToken(msg.sender, etherToWeiAmount);
-        emit CollectInterest(msg.sender, etherAmount);
+        _sendToken(msg.sender, amountWithDecimals);
+        emit CollectInterest(msg.sender, tokenAmount);
     }
 
-    function provideInterest(uint256 etherAmount) external
+    function provideInterest(uint256 tokenAmount) external
     nonReentrant
     onlyAdmins {
-        uint256 etherToWeiAmount = etherAmount * 1 ether;
-        _receiveToken(etherToWeiAmount);
+        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
+        _receiveToken(amountWithDecimals);
 
-        interestProviderList[msg.sender] += etherToWeiAmount;
-        interestPool += etherToWeiAmount;
+        interestProviderList[msg.sender] += amountWithDecimals;
+        interestPool += amountWithDecimals;
 
-        emit ProvideInterest(msg.sender, etherAmount);
+        emit ProvideInterest(msg.sender, tokenAmount);
     }
 }

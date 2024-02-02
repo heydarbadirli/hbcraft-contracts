@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC-BY-4.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
 

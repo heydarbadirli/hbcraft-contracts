@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC-BY-4.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
 
@@ -28,22 +28,43 @@ contract AccessControl is ProgramManager {
 
 
     // ======================================
+    // =             Functions              =
+    // ======================================
+    // Functions to check authorization and revert if not authorized
+    function _checkAccess(AccessTier tierToCheck) private view {
+        if (tierToCheck == AccessTier.OWNER && msg.sender != contractOwner) {
+            revert UnauthorizedAccess(tierToCheck);
+        } else if (tierToCheck == AccessTier.ADMIN && !contractAdmins[msg.sender] && msg.sender != contractOwner) {
+            revert UnauthorizedAccess(tierToCheck);
+        }
+    }
+
+    function _checkIfPersonalData(address userAddress) private view {
+        if (msg.sender != userAddress && !contractAdmins[msg.sender] && msg.sender != contractOwner){
+            revert UnauthorizedAccess(AccessTier.ADMIN);
+        }
+    }
+
+
+    // ======================================
     // =             Modifiers              =
     // ======================================
     // DEV: The functions only accesible by the address deployed the contract
     modifier onlyContractOwner () {
-            if (msg.sender != contractOwner){
-                revert UnauthorizedAccess(AccessTier.OWNER);
-            }
+            _checkAccess(AccessTier.OWNER);
             _;
         }
 
     // DEV: The functions only accesible by the contractOwner and the addresses that have admin status
     // DEV: The admin status can only be assigned by the address deployed the contract
     modifier onlyAdmins () {
-            if (contractAdmins[msg.sender] != true && msg.sender != contractOwner){
-                revert UnauthorizedAccess(AccessTier.ADMIN);
-            }
+            _checkAccess(AccessTier.ADMIN);
             _;
         }
+
+    // DEV: The functions only accesible by the contractOwner, the addresses that have admin status, and the users if it is personal data request
+    modifier personalDataAccess (address userAddress) {
+        _checkIfPersonalData(userAddress);
+        _;
+    }
 }

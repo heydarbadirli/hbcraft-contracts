@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC-BY-4.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
 
@@ -6,12 +6,12 @@ pragma solidity ^0.8.0;
 
 
 import "./AccessControl.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 
 contract ComplianceCheck is AccessControl, ReentrancyGuard {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Metadata;
 
     // ======================================
     // =              Errors                =
@@ -19,6 +19,10 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     // DEV: Exception raised when the stakeToken function called while the isStakingOpen parameter of the pool is false
     // DEV: Exception raised when the withdrawDeposit or withdrawAll function called while the isWithdrawalOpen parameter of the pool is false
     error NotOpen(uint256 poolID, string _action);
+    // DEV: Exception raised if the pool data related functions called before any pools created
+    error NoPoolsCreatedYet();
+    // DEV: Exception raised if the function called to stake in a non-existent pool
+    error PoolDoNotExist(uint256 poolID);
     // DEV: Exception raised if the total staked token amount will surrpass the stakingTarget with the intended token amount to stake
     error AmountExceedsTarget();
     // DEV: Exception raised if the token amount sent is over the fund left to restore
@@ -37,19 +41,9 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
 
 
     // ======================================
-    // =             Modifiers              =
+    // =             Functions              =
     // ======================================
-    modifier ifProgramEnded () {
-        if (programEndDate != 0){
-            if  (block.timestamp > programEndDate){
-                revert StakingProgramEnded();
-            }
-        }
-        _;
-    }
-
-    // DEV: Checks if the necessary pool is open for staking, withdrawal or interest claim, raises exception if not
-    modifier ifAvailable (uint256 poolID, PoolDataType propertyToCheck) {
+    function _checkAvailability(uint256 poolID, PoolDataType propertyToCheck) private view {
         StakingPool storage targetPool = stakingPoolList[poolID];
         string memory action;
 
@@ -62,12 +56,48 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
         }
 
         if (bytes(action).length != 0){revert NotOpen(poolID, action);}
+    }
+
+    function _checkPoolExistence(uint256 poolID) private view {
+        if (!(poolID < (stakingPoolList.length))) {revert PoolDoNotExist(poolID);}
+    }
+
+    function _checkProgramStatus() private view {
+        uint256 length = stakingPoolList.length;
+        if (length <= 0){revert NoPoolsCreatedYet();}
+    }
+
+    // ======================================
+    // =             Modifiers              =
+    // ======================================
+    modifier ifProgramEnded () {
+        if (programEndDate != 0){
+            if  (block.timestamp > programEndDate){
+                revert StakingProgramEnded();
+            }
+        }
+        _;
+    }
+
+    modifier ifPoolExists (uint256 poolID) {
+        _checkPoolExistence(poolID);
+        _;
+    }
+
+    modifier ifProgramLaunched () {
+        _checkProgramStatus();
+        _;
+    }
+
+    // DEV: Checks if the necessary pool is open for staking, withdrawal or interest claim, raises exception if not
+    modifier ifAvailable (uint256 poolID, PoolDataType propertyToCheck) {
+        _checkAvailability(poolID, propertyToCheck);
         _;
     }
     
     // DEV: Checks if the total funds in the pools will exceed the target staking amount with the current staking request, raises exception if yes
     modifier ifTargetReached (uint256 _amountToStake, uint256 _totalStaked){
-        if (_amountToStake > (stakingTarget - _totalStaked)){
+        if (_amountToStake > ((stakingTarget / tokenDecimals) - _totalStaked)){
             revert AmountExceedsTarget();
         }
         _;
@@ -76,7 +106,7 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     // DEV: Checks if the deposit amount is higher the minimum required amount, raises exception if not
     modifier enoughTokenSent (uint256 tokenSent, uint256 _minimumDeposit) {
         if (tokenSent < _minimumDeposit){
-            revert InsufficentDeposit({_tokenSent : tokenSent / 1 ether, _requiredAmount : _minimumDeposit / 1 ether});
+            revert InsufficentDeposit({_tokenSent : tokenSent / tokenDecimals, _requiredAmount : _minimumDeposit / tokenDecimals});
         }
         _;
     }

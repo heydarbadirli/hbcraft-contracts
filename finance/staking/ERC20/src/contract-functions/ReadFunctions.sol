@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC-BY-4.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
 
@@ -14,30 +14,31 @@ contract ReadFunctions is ComplianceCheck {
     // ======================================
     function checkStakingTarget() external view
     returns (uint256) {
-        return stakingTarget / 1 ether;
+        return stakingTarget / tokenDecimals;
     }
 
     function checkDefaultMinimumDeposit() external view
+    onlyAdmins
     returns (uint256) {
-        return defaultMinimumDeposit / 1 ether;
+        return defaultMinimumDeposit / tokenDecimals;
     }
 
     function checkInterestPool() external view
     onlyAdmins
     returns (uint256) {
-        return interestPool / 1 ether;
+        return interestPool / tokenDecimals;
     }
 
     function checkInterestProvidedByAddress(address userAddress) external view
     onlyAdmins
     returns (uint256) {
-        return interestProviderList[userAddress] / 1 ether;
+        return interestProviderList[userAddress] / tokenDecimals;
     }
 
     function checkInterestCollectedByAddress(address userAddress) external view
     onlyAdmins
     returns (uint256) {
-        return interestCollectorList[userAddress] / 1 ether;
+        return interestCollectorList[userAddress] / tokenDecimals;
     }
 
 
@@ -45,23 +46,21 @@ contract ReadFunctions is ComplianceCheck {
     // =Functions to check stakingPool data =
     // ======================================
     function _getPoolAPYDataList() private view
+    ifProgramLaunched
     returns (uint256[] memory) {
         uint256 length = stakingPoolList.length;
-        require(length > 0, "No pools created yet");
-
         uint256[] memory propertyList = new uint256[](length);
 
         for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
-            propertyList[poolNumber] = stakingPoolList[poolNumber].APY / 1 ether;
+            propertyList[poolNumber] = stakingPoolList[poolNumber].APY / tokenDecimals;
         }
         return propertyList;
     }
 
     function _getPoolTypeList() private view
+    ifProgramLaunched
     returns (PoolType[] memory) {
         uint256 length = stakingPoolList.length;
-        require(length > 0, "No pools created yet");
-
         PoolType[] memory propertyList = new PoolType[](length);
 
         for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
@@ -71,10 +70,9 @@ contract ReadFunctions is ComplianceCheck {
     }
 
     function _getPoolAvailabilityDataList(PoolDataType dataType) private view
+    ifProgramLaunched
     returns (bool[] memory) {
         uint256 length = stakingPoolList.length;
-        require(length > 0, "No pools created yet");
-
         bool[] memory propertyList = new bool[](length);
 
         for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
@@ -115,14 +113,13 @@ contract ReadFunctions is ComplianceCheck {
     }
 
     function _getPoolTotalDataList(DataType dataType) private view
+    ifProgramLaunched
     returns (uint256[] memory) {
         uint256 length = stakingPoolList.length;
-        require(length > 0, "No pools created yet");
-
         uint256[] memory propertyList = new uint256[](length);
 
         for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
-            propertyList[poolNumber] = stakingPoolList[poolNumber].totalList[dataType] / 1 ether;
+            propertyList[poolNumber] = stakingPoolList[poolNumber].totalList[dataType] / tokenDecimals;
             }
 
         return propertyList;
@@ -134,11 +131,13 @@ contract ReadFunctions is ComplianceCheck {
     }
 
     function checkTotalWithdrew() external view
+    onlyAdmins
     returns (uint256[] memory){
         return _getPoolTotalDataList(DataType.WITHDREW);
     }
 
     function checkTotalInterestClaimed() external view
+    onlyAdmins
     returns (uint256[] memory){
         return _getPoolTotalDataList(DataType.INTEREST_CLAIMED);
     }
@@ -154,21 +153,20 @@ contract ReadFunctions is ComplianceCheck {
     // =    Functoins to check user data    =
     // ======================================
     function _getUserDataList(DataType dataType, address userAddress) private view
+    ifProgramLaunched
     returns (uint256[] memory) {
         uint256 length = stakingPoolList.length;
-        require(length > 0, "No pools created yet");
-
         uint256[] memory propertyList = new uint256[](length);
 
         for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
             if (dataType == DataType.STAKED){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].stakerList[userAddress] / 1 ether;
+                propertyList[poolNumber] = stakingPoolList[poolNumber].stakerList[userAddress] / tokenDecimals;
             } else if (dataType == DataType.WITHDREW){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].withdrawerList[userAddress] / 1 ether;
+                propertyList[poolNumber] = stakingPoolList[poolNumber].withdrawerList[userAddress] / tokenDecimals;
             } else if (dataType == DataType.INTEREST_CLAIMED){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].interestClaimerList[userAddress] / 1 ether;
+                propertyList[poolNumber] = stakingPoolList[poolNumber].interestClaimerList[userAddress] / tokenDecimals;
             } else if (dataType == DataType.FUNDS_COLLECTED){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].fundCollectorList[userAddress] / 1 ether;
+                propertyList[poolNumber] = stakingPoolList[poolNumber].fundCollectorList[userAddress] / tokenDecimals;
             } else if (dataType == DataType.DEPOSIT_COUNT){
                 propertyList[poolNumber] = stakingPoolList[poolNumber].stakerDepositList[userAddress].length;
             }
@@ -177,16 +175,19 @@ contract ReadFunctions is ComplianceCheck {
     }
    
     function checkStakedAmountByAddress(address addressInput) external view
+    personalDataAccess(addressInput)
     returns (uint256[] memory){
         return _getUserDataList(DataType.STAKED, addressInput);
     }
 
     function checkWithdrewAmountByAddress(address addressInput) external view
+    personalDataAccess(addressInput)
     returns (uint256[] memory){
         return _getUserDataList(DataType.WITHDREW, addressInput);
     }
 
     function checkInterestClaimedByAddress(address addressInput) external view
+    personalDataAccess(addressInput)
     returns (uint256[] memory){
         return _getUserDataList(DataType.INTEREST_CLAIMED, addressInput);
     }
@@ -198,6 +199,7 @@ contract ReadFunctions is ComplianceCheck {
     }
 
     function checkDepositCountOfAddress(address addressInput) external view
+    personalDataAccess(addressInput)
     returns (uint256[] memory){
         return _getUserDataList(DataType.DEPOSIT_COUNT, addressInput);
     }

@@ -1,18 +1,20 @@
-// SPDX-License-Identifier: CC-BY-4.0
+// SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
 
 pragma solidity ^0.8.0;
 
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 
 contract ProgramManager {
     // ======================================
     // =          State Variables           =
     // ======================================
-    IERC20 public stakingToken;
+    IERC20Metadata public stakingToken;
+    uint256 internal tokenDecimals;
+
     uint256 internal stakingTarget;
     // NOTICE: Default value to set the minimumDeposit parameter for the new StakingPool
     uint256 internal defaultMinimumDeposit;

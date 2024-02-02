@@ -1,8 +1,47 @@
-# ERC20 Staking v1.0 by HB Craft
+# ERC20 Staking v1.1.0 by HB Craft
 
-## Introduction
+## What's New?
+### 1. Foundry integration
+The integration is introduced for seamless smart contract deployment. Now, deploying your contract is as straightforward as running the following command:
+
+  ```bash
+  forge script script/DeployerScript.s.sol --broadcast --rpc-url YOUR_RPC_URL --private-key YOUR_PRIVATE_KEY
+  ```
+#### Before You Deploy
+Customize the following variables in the DeployerScript.s.sol file according to your project's needs before deploying:
+
+ ```bash
+  _programTokenContractAddress: The address of the program token contract.
+  _stakingTarget: The staking target amount.
+  _defaultMinimumDeposit: The default minimum deposit required.
+  ```
+
+- `defaultMinimumDeposit` and `stakingTarget` can be **adjusted** as needed to adapt to new staking strategies.
+- `stakingToken` address is **fixed** upon deployment and cannot be changed later to ensure security and consistency.
+
+## 2. Unit Test Samples
+Alongside the Foundry integration, I have also introduced a suite of unit test samples designed to cover a variety of scenarios. These tests serve as a starting point for you to play with, expand, and adapt to your specific needs ensuring your smart contracts perform as intended.
+
+Here's a glimpse of the test scenarios now available:
+
+**Main Scenarios**
+- StakingScenarios.t.sol: Examine various staking conditions and behaviors.
+- WithdrawalScenarios.t.sol: Validate the withdrawal process and its edge cases.
+- InterestClaimScenarios.t.sol: Test the claiming process of interest within the staking program.
+
+**Management Scenarios**
+- AccessControlScenarios.t.sol: Assure that access controls are correctly enforced.
+- InterestManagementScenarios.t.sol: Ensure the accurate management of interest rates and distribution.
+
+## 3. Personal Data Access
+A notable feature of our updated access control is the implementation of personalDataAccess. This allows users to securely access their own data while maintaining strict privacy controls.
+
+## 4. Improvements
+With this version, I have implemented Increased Withdrawal Validation measures to resolve issues that could arise in specific scenarios, notably not being able to withdraw other deposits after a double withdrawal attempt from a single deposit. Additionally, I made improvements to the interest calculation mechanism.
+
+
+# Contract Introduction
 The contract allows to launch a staking program and to create an unlimited number of staking pools inside the program, which can be either locked or flexible. All pools use the designated ERC20 token assigned during program deployment inside the `constructor` function.
-
 
 ### Key Features
 **Multiple Staking Pools:**
@@ -129,57 +168,35 @@ The following functions allow both the contract owner and contract administrator
 - The program keeps detailed data of stakers, withdrawers, interest claimers, fund collectors, fund restorers, interest providers, and interest collectors in each pool.
 - Information access is also tier-based, allowing for easy data retrieval depending on your access level.
 
-| Function                             | AccessTier | Parameters                                                      | Returns        |
-|:-------------------------------------|:-----------|:----------------------------------------------------------------|:---------------|
-| `checkAPY`                           | **0**      | None                                                            | `uint256[]`    |
-| `checkClaimableInterest`             | **0**      | `uint256 poolID` `address userAddress` `uint256 depositNumber`  | `uint256`    |
-| `checkDefaultMinimumDeposit`         | **0**      | None                                                            | `uint256`      |
-| `checkDepositCountOfAddress`         | **0**      | `address addressInput`                                          | `uint256[]`    |
-| `checkIfInterestClaimOpen`           | **0**      | None                                                            | `bool[]`       |
-| `checkIfStakingOpen`                 | **0**      | None                                                            | `bool[]`       |
-| `checkIfWithdrawalOpen`              | **0**      | None                                                            | `bool[]`       |
-| `checkInterestClaimedByAddress`      | **0**      | `address addressInput`                                          | `uint256[]`    |
-| `checkPoolType`                      | **0**      | None                                                            | `PoolType[]`   |
-| `checkStakedAmountByAddress`         | **0**      | `address addressInput`                                          | `uint256[]`    |
-| `checkStakingTarget`                 | **0**      | None                                                            | `uint256`      |
-| `checkTotalInterestClaimed`          | **0**      | None                                                            | `uint256[]`    |
-| `checkTotalStaked`                   | **0**      | None                                                            | `uint256[]`    |
-| `checkTotalWithdrew`                 | **0**      | None                                                            | `uint256[]`    |
-| `checkWithdrewAmountByAddress`       | **0**      | `address addressInput`                                          | `uint256[]`    |
-| `checkYourAccessTier`                | **0**      | None                                                            | `AccessTier`   |
-| `checkCollectedFundsByAddress`       | **1**      | `address addressInput`                                          | `uint256[]`    |
-| `checkInterestCollectedByAddress`    | **1**      | `address userAddress`                                           | `uint256`      |
-| `checkInterestPool`                  | **1**      | None                                                            | `uint256`      |
-| `checkInterestProvidedByAddress`     | **1**      | `address userAddress`                                           | `uint256`      |
-| `checkTotalFundCollected`            | **1**      | None                                                            | `uint256[]`    |
+| Function                             | AccessTier | Parameters                  | Returns     | Note                              |
+|--------------------------------------|------------|-----------------------------|-------------|-----------------------------------|
+| `checkAPY`                           | **0**      | None                        | `uint256[]` |                                   |
+| `checkDepositCountOfAddress`         | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
+| `checkIfInterestClaimOpen`           | **0**      | None                        | `bool[]`    |                                   |
+| `checkIfStakingOpen`                 | **0**      | None                        | `bool[]`    |                                   |
+| `checkIfWithdrawalOpen`              | **0**      | None                        | `bool[]`    |                                   |
+| `checkInterestClaimedByAddress`      | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
+| `checkPoolType`                      | **0**      | None                        | `PoolType[]`|                                   |
+| `checkStakedAmountByAddress`         | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
+| `checkStakingTarget`                 | **0**      | None                        | `uint256`   |                                   |
+| `checkTotalStaked`                   | **0**      | None                        | `uint256[]` |                                   |
+| `checkWithdrewAmountByAddress`       | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
+| `checkYourAccessTier`                | **0**      | None                        | `AccessTier`|                                   |
+| `checkCollectedFundsByAddress`       | **1**      | `address addressInput`      | `uint256[]` | User can access own data          |
+| `checkInterestCollectedByAddress`    | **1**      | `address userAddress`       | `uint256`   |                                   |
+| `checkInterestPool`                  | **1**      | None                        | `uint256`   |                                   |
+| `checkInterestProvidedByAddress`     | **1**      | `address userAddress`       | `uint256`   |                                   |
+| `checkTotalFundCollected`            | **1**      | None                        | `uint256[]` |                                   |
+
 
 - **Enum `PoolType`:** Defines the type of a staking pool.
   ```solidity
   enum PoolType { LOCKED, FLEXIBLE }
   ```
 
-## :gear: Initial Configuration
-Upon deployment of the `ERC20Staking` contract, the following parameters are set:
-
-```solidity
-constructor(){
-        contractOwner = msg.sender;
-
-        stakingToken = IERC20(`YOUR TOKEN CONTRACT ADDRESS`); // The address of the ERC20 token that will be used by program contract.
-        stakingTarget = `YOUR TOKEN AMOUNT` ether; // This represents the contract's staking goal.
-
-        defaultMinimumDeposit = `YOUR TOKEN AMOUNT` ether; // Used to determine staking pool properties when the program is launched with `launchDefault` function.
-    }
-```
-
-After the contract is deployed:
-
-- `defaultMinimumDeposit` and `stakingTarget` can be **adjusted** as needed to adapt to new staking strategies.
-- `stakingToken` address is **fixed** upon deployment and cannot be changed later to ensure security and consistency.
-
 
 ## Dependencies
-This project uses OpenZeppelin contracts for enhanced security and standardized features. If you are going to use a JavaScript-based development environment, such as Truffle or Hardhat, instead of Remix IDE for contract deployment, you might need to install necessary dependencies.
+This project uses the Foundry framework with the OpenZeppelin contracts for enhanced security and standardized features. If you are going to use a JavaScript-based development environment, such as Truffle or Hardhat instead, you might need to install necessary dependencies.
 
 You can install the OpenZeppelin contracts by running:
 
@@ -187,7 +204,13 @@ You can install the OpenZeppelin contracts by running:
 npm install @openzeppelin/contracts
 ```
 
+
 ## License
-Publishing my creative works under the brand name **HB Craft**.
-The contract is released under the [CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
-You are authorized to use, modify, and distribute, provided that appropriate credit to **HB Craft** is maintained.
+This work is published under the brand name **HB Craft** and is licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+You are authorized to use, modify, and distribute the work provided that appropriate credit is given to **HB Craft**, in any significant usage, you disclose the source of the work by providing a link to the original Apache License, and indicate if changes were made. 
+
+The work is distributed under the License on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
