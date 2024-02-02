@@ -196,12 +196,12 @@ The following functions allow both the contract owner and contract administrator
 
 
 ## Dependencies
-This project uses the Foundry framework with the OpenZeppelin contracts for enhanced security and standardized features. If you are going to use a JavaScript-based development environment, such as Truffle or Hardhat instead, you might need to install necessary dependencies.
+This project uses the Foundry framework with the OpenZeppelin contracts for enhanced security and standardized features. You need to install necessary dependencies.
 
 You can install the OpenZeppelin contracts by running:
 
 ```bash
-npm install @openzeppelin/contracts
+$ forge install OpenZeppelin/openzeppelin-contracts
 ```
 
 
@@ -210,7 +210,6 @@ This work is published under the brand name **HB Craft** and is licensed under t
 
 http://www.apache.org/licenses/LICENSE-2.0
 
-You are authorized to use, modify, and distribute the work provided that appropriate credit is given to **HB Craft**, in any significant usage, you disclose the source of the work by providing a link to the original Apache License, and indicate if changes were made. 
+You are authorized to use, modify, and distribute the work provided that appropriate credit is given to **HB Craft**, in any significant usage, you disclose the source of the work by providing a link to the original Apache License, and indicate if changes were made.
 
 The work is distributed under the License on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-
