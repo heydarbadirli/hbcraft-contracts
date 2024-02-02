@@ -171,7 +171,7 @@ The following functions allow both the contract owner and contract administrator
 | Function                             | AccessTier | Parameters                  | Returns     | Note                              |
 |--------------------------------------|------------|-----------------------------|-------------|-----------------------------------|
 | `checkAPY`                           | **0**      | None                        | `uint256[]` |                                   |
-| `checkCollectedFundsByAddress`       | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
+| `checkClaimableInterest`             | **0**      | `address userAddress` `uint256 poolID` `uint256 depositNumber` `bool withDecimals`      | `uint256[]` | User can access own data          |
 | `checkDepositCountOfAddress`         | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
 | `checkIfInterestClaimOpen`           | **0**      | None                        | `bool[]`    |                                   |
 | `checkIfStakingOpen`                 | **0**      | None                        | `bool[]`    |                                   |
@@ -183,6 +183,7 @@ The following functions allow both the contract owner and contract administrator
 | `checkTotalStaked`                   | **0**      | None                        | `uint256[]` |                                   |
 | `checkWithdrewAmountByAddress`       | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
 | `checkYourAccessTier`                | **0**      | None                        | `AccessTier`|                                   |
+| `checkCollectedFundsByAddress`       | **1**      | `address addressInput`      | `uint256[]` |                                   |
 | `checkInterestCollectedByAddress`    | **1**      | `address userAddress`       | `uint256`   |                                   |
 | `checkInterestPool`                  | **1**      | None                        | `uint256`   |                                   |
 | `checkInterestProvidedByAddress`     | **1**      | `address userAddress`       | `uint256`   |                                   |
