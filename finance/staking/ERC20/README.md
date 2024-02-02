@@ -149,8 +149,8 @@ The following functions allow both the contract owner and contract administrator
 
 | Function                          | Access Tier | Description                                           | Parameters                              |
 |:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `collectFunds`                    | **1**       | Collects staked funds from a specified pool.          | `uint256 poolID` `uint256 etherAmount`   |
-| `restoreFunds`                    | **1**       | Restores collected funds to a specified pool.         | `uint256 poolID` `uint256 etherAmount`   |
+| `collectFunds`                    | **1**       | Collects staked funds from a specified pool.          | `uint256 poolID` `uint256 tokenAmount`   |
+| `restoreFunds`                    | **1**       | Restores collected funds to a specified pool.         | `uint256 poolID` `uint256 tokenAmount`   |
 
 
 ## Interest Pool Management
@@ -160,8 +160,8 @@ The following functions allow both the contract owner and contract administrator
 
 | Function                          | Access Tier | Description                                           | Parameters                              |
 |:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `provideInterest`                 | **1**       | Adds funds to the interest pool.                      | `uint256 etherAmount`                   |
-| `collectInterestPoolFunds`        | **1**       | Collects funds from the interest pool.                | `uint256 etherAmount`                   |
+| `provideInterest`                 | **1**       | Adds funds to the interest pool.                      | `uint256 tokenAmount`                   |
+| `collectInterestPoolFunds`        | **1**       | Collects funds from the interest pool.                | `uint256 tokenAmount`                   |
 
 
 ## Data Collection and Access
