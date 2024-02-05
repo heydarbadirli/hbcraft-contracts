@@ -1,8 +1,4 @@
-<h1 align="center">
-  <picture>
-    <img alt="ERC20 Staking by HB Craft" src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" width="256" height="256">
-  </picture>
-</h1>
+<img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="256" height="256"/>
 
 # ERC20 Staking by HB Craft
 ![version](https://img.shields.io/badge/version-1.1.1-blue)
