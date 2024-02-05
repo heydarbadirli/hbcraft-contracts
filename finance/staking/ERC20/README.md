@@ -1,4 +1,4 @@
-# ERC20 Staking v1.1.0 by HB Craft
+# ERC20 Staking by HB Craft
 
 ## What's New?
 ## Version 1.1.1 - 2024-02-05
