@@ -1,11 +1,11 @@
 # ERC20 Staking by HB Craft
 
 ## What's New?
-## Version 1.1.1 - 2024-02-05
+## Version 1.1.1 - 2024/02/05
 ### Fixed: Automatic Interest Claim
 Now, when users initiate a deposit withdrawal, the program is also designed to automatically send any accumulated interest for that deposit to the user. However, when the interest claim from the staking pool is disabled, the program will default to withdrawing only the deposited amount, bypassing the interest claim.
 
-## Version 1.1.0 - 2024-02-02
+## Version 1.1.0 - 2024/02/02
 ### 1) Added: Foundry integration
 The integration is introduced for seamless smart contract deployment. Now, deploying your contract is as straightforward as running the following command:
 
@@ -41,7 +41,10 @@ Here's a glimpse of the test scenarios now available:
 ### 3) Added: Personal Data Access
 A notable feature of our updated access control is the implementation of personalDataAccess. This allows users to securely access their own data while maintaining strict privacy controls.
 
-### 4) Fixed: Improvements
+### 4) Added: Expanded Token Compatibility
+With this update, I've expanded the program's flexibility to use a broader range of ERC20 tokens. Previously, deployers were limited to use only ERC20 tokens with 18 decimals. Now, this restriction is removed, enabling the use of any ERC20 token as a staking token, regardless of its decimal specification.
+
+### 5) Fixed: Improvements
 With this version, I have implemented Increased Withdrawal Validation measures to resolve issues that could arise in specific scenarios, notably not being able to withdraw other deposits after a double withdrawal attempt from a single deposit. Additionally, I made improvements to the interest calculation mechanism.
 
 
@@ -62,7 +65,7 @@ Each pool can have:
 
 
 ## Supported Tokens
-The contract was initially written for RMV token staking. However, it supports various ERC20 tokens with 18 decimals. Non-ERC20 tokens are not supported. Users earn interest in the token they staked in.
+The contract was initially written for RMV token staking. However, it supports all ERC20 tokens. Non-ERC20 tokens are not supported. Users earn interest in the token they staked in.
 
 
 ## User Experience
