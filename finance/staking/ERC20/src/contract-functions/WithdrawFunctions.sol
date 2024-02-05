@@ -76,18 +76,21 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
 
     // NOTICE: isBatchClaim = true because the function is called by withdraw function and we don't want to raise an exception when nothing to claim
     function _claimInterest(uint256 poolID, address userAddress, uint256 depositNumber) private {
-        _processInterestClaim(poolID, userAddress, depositNumber, true);
+        bool _isInterestClaimOpen = stakingPoolList[poolID].isInterestClaimOpen;
+        if(_isInterestClaimOpen){_processInterestClaim(poolID, userAddress, depositNumber, true);}
     }
 
     function claimInterest(uint256 poolID, uint256 depositNumber) external
     nonReentrant
-    ifPoolExists(poolID) {
+    ifPoolExists(poolID)
+    ifAvailable(poolID, PoolDataType.IS_INTEREST_CLAIM_OPEN) {
         _processInterestClaim(poolID, msg.sender, depositNumber, false);
     }
 
     function claimAllInterest(uint256 poolID) external
     nonReentrant
-    ifPoolExists(poolID) {
+    ifPoolExists(poolID)
+    ifAvailable(poolID, PoolDataType.IS_INTEREST_CLAIM_OPEN) {
         for (uint256 depositNumber = 0; depositNumber < stakingPoolList[poolID].stakerDepositList[msg.sender].length; depositNumber++){
             _processInterestClaim(poolID, msg.sender, depositNumber, true);
         }

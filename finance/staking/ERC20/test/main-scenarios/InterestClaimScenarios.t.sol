@@ -52,4 +52,18 @@ contract InterestClaimScenarios is InterestClaimFunctions {
 
         _claimInterestWithTest(userOne, 0, 0, true);
     }
+
+    function test_InterestClaim_NotOpen() external {
+        _performPMActions(address(this), PMActions.LAUNCH);
+        stakingContract.changePoolAvailabilityStatus(0, ProgramManager.PoolDataType.IS_INTEREST_CLAIM_OPEN, false);
+
+        vm.warp(1706809873);
+        _stakeTokenWithAllowance(userOne, 0, amountToStake);
+
+        _increaseAllowance(address(this), 1000);
+        stakingContract.provideInterest(amountToProvide);
+
+        vm.warp(1738401000);
+        _claimInterestWithTest(userOne, 0, 0, true);
+    }
 }

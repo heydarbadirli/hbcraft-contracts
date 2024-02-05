@@ -1,7 +1,12 @@
 # ERC20 Staking v1.1.0 by HB Craft
 
 ## What's New?
-### 1. Foundry integration
+## Version 1.1.1 - 2024-02-05
+### Fixed: Automatic Interest Claim
+Now, when users initiate a deposit withdrawal, the program is also designed to automatically send any accumulated interest for that deposit to the user. However, when the interest claim from the staking pool is disabled, the program will default to withdrawing only the deposited amount, bypassing the interest claim.
+
+## Version 1.1.0 - 2024-02-02
+### 1) Added: Foundry integration
 The integration is introduced for seamless smart contract deployment. Now, deploying your contract is as straightforward as running the following command:
 
   ```bash
@@ -19,7 +24,7 @@ Customize the following variables in the DeployerScript.s.sol file according to 
 - `defaultMinimumDeposit` and `stakingTarget` can be **adjusted** as needed to adapt to new staking strategies.
 - `stakingToken` address is **fixed** upon deployment and cannot be changed later to ensure security and consistency.
 
-### 2. Unit Test Samples
+### 2) Added: Unit Test Samples
 Alongside the Foundry integration, I have also introduced a suite of unit test samples designed to cover a variety of scenarios. These tests serve as a starting point for you to play with, expand, and adapt to your specific needs ensuring your smart contracts perform as intended.
 
 Here's a glimpse of the test scenarios now available:
@@ -33,10 +38,10 @@ Here's a glimpse of the test scenarios now available:
 - AccessControlScenarios.t.sol: Assure that access controls are correctly enforced.
 - InterestManagementScenarios.t.sol: Ensure the accurate management of interest rates and distribution.
 
-### 3. Personal Data Access
+### 3) Added: Personal Data Access
 A notable feature of our updated access control is the implementation of personalDataAccess. This allows users to securely access their own data while maintaining strict privacy controls.
 
-### 4. Improvements
+### 4) Fixed: Improvements
 With this version, I have implemented Increased Withdrawal Validation measures to resolve issues that could arise in specific scenarios, notably not being able to withdraw other deposits after a double withdrawal attempt from a single deposit. Additionally, I made improvements to the interest calculation mechanism.
 
 
