@@ -17,7 +17,17 @@ The `stakingTarget` and `endDate` properties are introduced to the `StakingPool`
 - The `addStakingPool` function has been renamed to `addStakingPoolCustom` and revised to allow for the addition of pools with more customizable properties.
 
 #### 4) REMOVED: Access Control for Read Functions
-Identified issues with calling read functions on the platforms like PolygonScan and MyEtherWallet have led to the removal of access control checks for the read functions. This decision aims to simplify the deployment process and eliminate confusion, given the public visibility and accessibility of contract actions on-chain.
+The update is made to improve user experience across diverse platforms.
+
+Initially, the contract included access control checks for read functions to manage who could retrieve which information. However, this approach led to unintended complications, particularly when using platforms like **PolygonScan** and **MyEtherWallet**.
+
+The issue stemmed from how these platforms execute read function calls. Unlike the **Remix IDE** or frameworks like **Foundry**, which use the caller's address to call the read functions, these platforms don't use the caller's address when they cast a read call. This difference causes the contract to revert calls due to access control checks, leading to errors in one tool but not in another, which can confuse the deployers and the developers.
+
+For example, **PolygonScan** would error out read functions (with access controls) requiring inputs while returning default type values for those without inputs.
+
+**MyEtherWallet**, on the other hand, consistently reverted all read function calls with access controls. This inconsistency could mislead developers into misinterpreting the contract's behavior and further complicating diagnostics and user experience.
+
+After careful consideration and recognizing that all blockchain data is publicly available and can be scrapped quite easily, I have concluded that strict access controls on read functions are unnecessary and removed the feature from the contract. Future updates may reintroduce access control for the read functions as an extension.
 
 #### 5) CHANGED: Read Functions
 The addition of new properties to staking pools necessitated the modification of the read functions.
