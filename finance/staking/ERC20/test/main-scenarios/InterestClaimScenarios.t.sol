@@ -6,7 +6,7 @@ import "../main-test-functions/InterestClaimFunctions.sol";
 contract InterestClaimScenarios is InterestClaimFunctions {
 
     function test_InterestClaim() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+        _addPool(address(this), true);
 
         vm.warp(1706809873);
         _stakeTokenWithAllowance(userOne, 0, amountToStake);
@@ -18,8 +18,8 @@ contract InterestClaimScenarios is InterestClaimFunctions {
         _claimInterestWithTest(userOne, 0, 0, false);
     }
 
-    function test_ClaimAllInterest() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+    function test_InterestClaim_ClaimAll() external {
+        _addPool(address(this), true);
 
         vm.warp(1706809873);
         for(uint256 times = 0; times < 3; times++){
@@ -34,7 +34,7 @@ contract InterestClaimScenarios is InterestClaimFunctions {
     }
 
     function test_InterestClaim_NotEnoughFundsInTheInterestPool() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+        _addPool(address(this), true);
 
         _stakeTokenWithAllowance(userOne, 0, amountToStake);
 
@@ -43,7 +43,7 @@ contract InterestClaimScenarios is InterestClaimFunctions {
     }
 
     function test_InterestClaim_NothingToClaim() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+        _addPool(address(this), true);
 
         _stakeTokenWithAllowance(userOne, 0, amountToStake);
 
@@ -54,8 +54,8 @@ contract InterestClaimScenarios is InterestClaimFunctions {
     }
 
     function test_InterestClaim_NotOpen() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
-        stakingContract.changePoolAvailabilityStatus(0, ProgramManager.PoolDataType.IS_INTEREST_CLAIM_OPEN, false);
+        _addPool(address(this), true);
+        stakingContract.changePoolAvailabilityStatus(0, 2, false);
 
         vm.warp(1706809873);
         _stakeTokenWithAllowance(userOne, 0, amountToStake);

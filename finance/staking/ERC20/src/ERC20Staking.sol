@@ -26,13 +26,17 @@ import "./contract-functions/WithdrawFunctions.sol";
 
 
 contract ERC20Staking is AdministrativeFunctions, StakingFunctions, WithdrawFunctions {
-    constructor(address tokenAddress, uint256 _stakingTarget, uint256 _defaultMinimumDeposit){
+    constructor(address tokenAddress, uint256 _defaultStakingTarget, uint256 _defaultMinimumDeposit, uint256 _confirmationCode){
         contractOwner = msg.sender;
 
         stakingToken = IERC20Metadata(tokenAddress);
         tokenDecimals = 10 ** stakingToken.decimals();
 
-        stakingTarget = _stakingTarget * tokenDecimals;
+        defaultStakingTarget = _defaultStakingTarget * tokenDecimals;
         defaultMinimumDeposit = ((_defaultMinimumDeposit > 0) ? _defaultMinimumDeposit : 1) * tokenDecimals;
+
+        confirmationCode = _confirmationCode;
+
+        emit CreateProgram(stakingToken.symbol(), tokenAddress, _defaultStakingTarget, _defaultMinimumDeposit); 
     }
 }

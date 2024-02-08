@@ -7,20 +7,14 @@ pragma solidity ^0.8.0;
 
 import "./ReadFunctions.sol";
 import "./WriteFunctions.sol";
-import "../libraries/ArrayLibrary.sol";
-
 
 contract StakingFunctions is ReadFunctions, WriteFunctions {
-    // DEV: For using all functions from ArrayLib as methods on uint256[] arrays
-    // DEV: array.sum() to calculate the sum of elements in the array
-    using ArrayLibrary for uint256[];
-
     function stakeToken(uint256 poolID, uint256 tokenAmount) external
     nonReentrant
     ifPoolExists(poolID)
     ifAvailable(poolID, PoolDataType.IS_STAKING_OPEN)
     enoughTokenSent(tokenAmount * tokenDecimals, stakingPoolList[poolID].minimumDeposit)
-    ifTargetReached(tokenAmount, checkTotalStaked().sum()) {
+    ifTargetReached(poolID, tokenAmount * tokenDecimals) {
         uint256 amountWithDecimals = tokenAmount * tokenDecimals;
         _receiveToken(amountWithDecimals);
 

@@ -6,27 +6,27 @@ import "./TestSetUp.t.sol";
 contract ReadFunctions is TestSetUp {
     function _getTotalStaked(uint256 poolID) internal view
     returns (uint256) {
-        return stakingContract.checkTotalStaked()[poolID];
+        return stakingContract.checkTotalStaked(poolID);
     }
 
     function _getTotalStakedBy(address userAddress, uint256 poolID) internal view
     returns (uint256) {
-        return stakingContract.checkStakedAmountByAddress(userAddress)[poolID];
+        return stakingContract.checkStakedAmountByAddress(userAddress, poolID);
     }
 
     function _getTotalWithdrawn(uint256 poolID) internal view
     returns (uint256) {
-        return stakingContract.checkTotalWithdrew()[poolID];
+        return stakingContract.checkTotalWithdrawn(poolID);
     }
 
     function _getTotalWithdrawnBy(address userAddress, uint256 poolID) internal view
     returns (uint256) {
-        return stakingContract.checkWithdrewAmountByAddress(userAddress)[poolID];
+        return stakingContract.checkWithdrawnAmountByAddress(userAddress, poolID);
     }
 
     function _getUserDepositCount(address userAddress, uint256 poolID) internal view
     returns (uint256) {
-        return stakingContract.checkDepositCountOfAddress(userAddress)[poolID];
+        return stakingContract.checkDepositCountOfAddress(userAddress, poolID);
     }
 
     function _getTokenBalance(address userAddress, bool withDecimals) internal view

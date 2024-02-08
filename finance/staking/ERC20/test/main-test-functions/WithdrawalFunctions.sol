@@ -10,10 +10,10 @@ contract WithdrawalFunctions is InterestClaimFunctions {
         if (_depositNo != 9999){
             _interestToClaim = stakingContract.checkClaimableInterest(userAddress, _poolID, _depositNo, true);
         } else {
-            uint256 poolCount = stakingContract.checkPoolType().length;
-            uint256[] memory depositCount = stakingContract.checkDepositCountOfAddress(userAddress);
+            uint256 poolCount = stakingContract.checkPoolCount();
             for(uint256 _poolNo = 0; _poolNo < poolCount; _poolNo++){
-                for(uint256 _dNo = 0; _dNo < depositCount[_poolNo]; _dNo++){
+                uint256 depositCount = stakingContract.checkDepositCountOfAddress(userAddress, _poolNo);
+                for(uint256 _dNo = 0; _dNo < depositCount; _dNo++){
                     _interestToClaim += stakingContract.checkClaimableInterest(userAddress, _poolNo, _dNo, true);
                 }
             }
@@ -57,9 +57,9 @@ contract WithdrawalFunctions is InterestClaimFunctions {
 
             currentData = _getCurrentData(userAddress, _poolID, true);
 
-            //assertEq(currentData[0], expectedData[0]);
-            //assertEq(currentData[1], expectedData[1]);
-            //assertEq(currentData[2], expectedData[2]);
+            assertEq(currentData[0], expectedData[0]);
+            assertEq(currentData[1], expectedData[1]);
+            assertEq(currentData[2], expectedData[2]);
             assertEq(currentData[3], expectedData[3]);
             
             if(ifWithInterest){assertEq(_trackInterestClaimWithWithdrawal(userAddress, _poolID, _depositNo), 0);}

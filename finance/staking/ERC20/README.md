@@ -1,36 +1,101 @@
 <img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="200" height="200"/>
 
 # ERC20 Staking by HB Craft
-![version](https://img.shields.io/badge/version-1.1.1-blue)
+![version](https://img.shields.io/badge/version-1.2.0-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### What's New?
+### Version 1.2.0 - 2024/02/08
+#### 1) REMOVED: 2 Global Variables
+The `stakingTarget` and `programEndDate` variables have been eliminated to introduce a more dynamic staking pool management approach. This change supports a flexible structure, allowing for tailored management of each staking pool.
+
+#### 2) ADDED: New StakingPool Properties
+The `stakingTarget` and `endDate` properties are introduced to the `StakingPool` struct. This enhancement enables the specification of unique staking targets and end dates for each pool, facilitating the independent operation of multiple staking pools. This flexibility allows for the addition and conclusion of pools with varied staking targets without the need for deploying new contracts.
+
+#### 3) CHANGED: Staking Pool Addition Mechanism
+- The previous `launchDefault` function has been deprecated in favor of the `addStakingPoolDefault` function, which now supports the addition of either a locked or flexible pool with default settings instead of adding 2 pools (1 locked and 1 flexible) in one go.
+- The `addStakingPool` function has been renamed to `addStakingPoolCustom` and revised to allow for the addition of pools with more customizable properties.
+
+#### 4) REMOVED: Access Control for Read Functions
+Identified issues with calling read functions on the platforms like PolygonScan and MyEtherWallet have led to the removal of access control checks for the read functions. This decision aims to simplify the deployment process and eliminate confusion, given the public visibility and accessibility of contract actions on-chain.
+
+#### 5) CHANGED: Read Functions
+The addition of new properties to staking pools necessitated the modification of the read functions.
+
+- Read functions have been updated to return a single value based on the `poolID`
+- `checkStakingTarget` and `checkMinimumDeposit` functions is now used for retrieving StakingPool property values
+
+#### 6) CHANGED: the `endProgram` function
+The endProgram function has been renamed to endStakingPool and the `ifPoolEnded` is introduced to enforce the immutability of concluded pools by preventing further modifications.
+- The stakers in finalized pools can still withdraw their stakes and claim their interest.
+
+#### 7) ADDED: Confirmation Code
+- A confirmation code is now mandated for invoking the `endStakingPool` function to prevent ending a `StakingPool` accidentally.
+- This code is set during the program's deployment phase.
+
+#### 8) ADDED: New Events
+A series of new events are added to improve the ease of tracking program updates and changes. Here is the full list of newly added events:
+- `CreateProgram`
+- `PauseProgram`
+- `ResumeProgram`
+
+- `AddContractAdmin`
+- `RemoveContractAdmin`
+
+- `AddStakingPool`
+- `EndStakingPool`
+
+- `UpdateDefaultStakingTarget`
+- `UpdateDefaultMinimumDeposit`
+
+- `UpdateStakingTarget`
+- `UpdateMinimumDeposit`
+
+- `UpdateStakingStatus`
+- `UpdateWithdrawalStatus`
+- `UpdateInterestClaimStatus`
+
+#### 9) IMPROVED: Expanded Unit Testing
+- Unit tests have been broadened to align with the latest updates, ensuring comprehensive validation of the modified functionalities.
+- The `InterestManagementScenarios.t.sol` file name is changed to `MainManagementScenarios.t.sol` to better reflect the comprehensive testing of main management scenarios.
+
+#### CHANGED: Enum Types as an Input/Output
+Custom enum types as a function argument or return type have been converted to uint256 to ensure compatibility across different software interfaces.
+
+For the `uint256 typeToSet` argument the numbers represent:
+  ```bash
+  0 - Locked Pool Type
+  1 - Flexible Pool Type
+  ```
+For the `uint256 parameterToChange` argument the numbers represent:
+  ```bash
+  0 - isStakingOpen
+  1 - isWithdrawalOpen
+  2 - isInterestClaimOpen
+  ```
+
+---
 ### Version 1.1.1 - 2024/02/05
 #### Fixed: Automatic Interest Claim
-Now, when users initiate a deposit withdrawal, the program is also designed to automatically send any accumulated interest for that deposit to the user. However, when the interest claim from the staking pool is disabled, the program will default to withdrawing only the deposited amount, bypassing the interest claim.
+With this update, when users initiate a deposit withdrawal, the program also automatically sends the accumulated interest for that deposit to the user. However, when the interest claim from the staking pool is disabled, the program will default to withdrawing only the deposited amount, bypassing the interest claim.
 
 ---
 ### Version 1.1.0 - 2024/02/02
-#### 1) Added: Foundry integration
+#### 1) ADDED: Foundry integration
 The integration is introduced for seamless smart contract deployment. Now, deploying your contract is as straightforward as running the following command:
 
   ```bash
-  forge script script/DeployerScript.s.sol --broadcast --rpc-url YOUR_RPC_URL --private-key YOUR_PRIVATE_KEY
+  cast wallet import <YOUR_WALLET_NAME> --private-key <YOUR_PRIVATE_KEY>
+  forge create src/ERC20Staking.sol:ERC20Staking --constructor-args <YOUR_TOKEN_CONTRACT_ADDRESS> <DEFAULT_STAKING_TARGET> <DEFAULT_MINIMUM_DEPOSIT> <YOUR_CONFIRMATION_CODE> --account <YOUR_WALLET_NAME> --rpc-url <YOUR_RPC_URL>
   ```
 ##### Before You Deploy
-Customize the following variables in the DeployerScript.s.sol file according to your project's needs before deploying:
+Customize the following variables in the `src/ERC20Staking.sol` file according to your project's needs before deploying:
 
- ```bash
-  _programTokenContractAddress: The address of the program token contract.
-  _stakingTarget: The staking target amount.
-  _defaultMinimumDeposit: The default minimum deposit required.
-  ```
-
-- `defaultMinimumDeposit` and `stakingTarget` can be **adjusted** as needed to adapt to new staking strategies.
+- `_defaultMinimumDeposit` and `_defaultStakingTarget` can be **adjusted** later if needed to adapt to new staking strategies.
 - `stakingToken` address is **fixed** upon deployment and cannot be changed later to ensure security and consistency.
 
-#### 2) Added: Unit Test Samples
-Alongside the Foundry integration, I have also introduced a suite of unit test samples designed to cover a variety of scenarios. These tests serve as a starting point for you to play with, expand, and adapt to your specific needs ensuring your smart contracts perform as intended.
+#### 2) ADDED: Unit Test Samples
+Alongside the Foundry integration, a series of unit test samples are designed and introduced to cover a variety of scenarios. These tests serve as a starting point for the deployers to play with, expand, and adapt to their specific needs ensuring the smart contract perform as intended before deploying.
 
 Here's a glimpse of the test scenarios now available:
 
@@ -43,14 +108,14 @@ Here's a glimpse of the test scenarios now available:
 - AccessControlScenarios.t.sol: Assure that access controls are correctly enforced.
 - InterestManagementScenarios.t.sol: Ensure the accurate management of interest rates and distribution.
 
-#### 3) Added: Personal Data Access
-A notable feature of our updated access control is the implementation of personalDataAccess. This allows users to securely access their own data while maintaining strict privacy controls.
+#### 3) ADDED: Personal Data Access
+A notable feature of our updated access control is the implementation of `personalDataAccess`. This allows users to securely access their own data while maintaining strict privacy controls.
 
-#### 4) Added: Expanded Token Compatibility
-With this update, I've expanded the program's flexibility to use a broader range of ERC20 tokens. Previously, deployers were limited to use only ERC20 tokens with 18 decimals. Now, this restriction is removed, enabling the use of any ERC20 token as a staking token, regardless of its decimal specification.
+#### 4) ADDED: Expanded Token Compatibility
+With this update, The program's flexibility to use a broader range of ERC20 tokens is expanded. Previously, deployers were limited to use only ERC20 tokens with 18 decimals. Now, this restriction is removed, enabling the use of any ERC20 token as a staking token, regardless of its decimal specification.
 
-#### 5) Fixed: Improvements
-With this version, I have implemented Increased Withdrawal Validation measures to resolve issues that could arise in specific scenarios, notably not being able to withdraw other deposits after a double withdrawal attempt from a single deposit. Additionally, I made improvements to the interest calculation mechanism.
+#### 5) IMPROVED: General Improvements
+With this version, increased withdrawal validation measures are implemented to resolve issues that could arise in specific scenarios. E.g not being able to withdraw other deposits after a double withdrawal attempt from a single deposit. Additionally, the improvements are made to the interest calculation mechanism.
 
 ---
 ### Contract Introduction
@@ -62,11 +127,11 @@ The contract allows to launch a staking program and to create an unlimited numbe
 
 **Customizable Pool Properties:**
 Each pool can have:
-- Its minimum deposit and APY properties adjusted independently.
-- Statuses (open or close) for staking, withdrawal, and interest claims controlled independently.
 
-**Staking Target:**
-- The program has a common staking target. When the total staked tokens across all pools reach this target, further staking is disabled, but the staking target can be adjusted if needed.
+- `stakingTarget`
+- `minimumDeposit`
+- `APY`
+- Statuses (open or close) for staking, withdrawal, and interest claims controlled independently.
 
 ---
 ### Supported Tokens
@@ -91,11 +156,11 @@ The contract was initially written for RMV token staking. However, it supports a
 
 
  **Withdrawal:**
-- When a staker decides to withdraw a deposit, the interest accrued on that deposit is also claimed simultaneously. The withdrawal action triggers both the withdrawal and the interest claim.
+- When a staker decides to withdraw a deposit, the interest accrued on that deposit is also claimed simultaneously if the interest claim is open for that pool.
 
 ---
 ### Access Control
-The contract implements an access control system with distinct roles. Functionalities are restricted based on access levels. The system ensures that access to data and execution of functions are strictly regulated.
+The contract implements an access control system with distinct roles. Functionalities are restricted based on access levels. The system ensures that access to the execution of functions are strictly regulated.
 
 - **Enum `AccessTier`:** Defines the different access levels within the contract.
   ```solidity
@@ -110,103 +175,66 @@ The contract implements an access control system with distinct roles. Functional
 
 ---
 ### Administrative Controls
-#### Contract Owner
-The contract owner can manage the program's overall functioning or configure staking pool properties individually. The functions listed below are available only to the contract owner to manage the program easily in regular conditions or emergencies.
+The `contractOwner` can manage the program's overall functioning or configure staking pool properties individually. The `contractOwner` has the ability to assign `contractAdmin`s, and they are also authorized to adjust individual pool parameters like pool status. Some functions are available only to the contract owner to manage the program easily in regular conditions or emergencies.
 
-| Function                          | Access Tier | Description |
-|:----------------------------------|:------------|:------------|
-| `launchDefault`                   | **2**       | Launches the staking program with two new staking pools, 1 locked and 1 flexible. |
-| `pauseProgram`                    | **2**       | Pauses staking, withdrawal, and interest claim activities for all pools. |
-| `resumeProgram`                   | **2**       | Resumes the staking program with predefined settings.* |
-| `endProgram`                      | **2**       | Ends the staking program, closes staking, opens the withdrawal and interest claiming for all the pools, and sets the program end date to the current timestamp. |
+| Function                          | Parameters                                                                                                     | Access Tier      | Description                                                                                                  |
+|-----------------------------------|-----------------------------------------------------------------------------------------------------------------|------------------|--------------------------------------------------------------------------------------------------------------|
+| `addContractAdmin`                | `address userAddress`                                                                                           | `onlyContractOwner` | Adds a new contract admin.                                                                           |
+| `addStakingPoolDefault`           | `uint256 typeToSet` `uint256 APYToSet`                                                                           | `onlyContractOwner` | Adds a new staking pool with default settings.                                                                       |
+| `addStakingPoolCustom`           | `uint256 typeToSet` `uint256 stakingTargetToSet` `uint256 minimumDepositToSet` `bool stakingAvailabilityStatus` `uint256 APYToSet`                                                                           | `onlyContractOwner` | Adds a new staking pool with custom properties.                                                                       |
+| `changePoolAvailabilityStatus`    | `uint256 poolID` `uint256 parameterToChange` `bool valueToAssign`                                                 | `onlyAdmins`        | Modifies availability status of a staking pool.                                                                     |
+| `collectFunds`                    | `uint256 poolID` `uint256 tokenAmount`                                                                           | `onlyAdmins`        | Collects staked funds from a staking pool.                                                                           |
+| `collectInterestPoolFunds`        | `uint256 tokenAmount`                                                                                           | `onlyAdmins`        | Collects funds from the interest pool.                                                                       |
+| `endStakingPool`                  | `uint256 poolID `uint256 _confirmationCode`                                                                     | `onlyContractOwner` | Ends a specified staking pool.                                                                               |
+| `pauseProgram`                    | None                                                                                                            | `onlyContractOwner` | Closes staking, withdrawal and interest claim for all the pools.                                                                               |
+| `provideInterest`                 | `uint256 tokenAmount`                                                                                           | `onlyAdmins`        | Adds funds to the interest pool.                                                                             |
+| `removeContractAdmin`             | `address userAddress`                                                                                           | `onlyContractOwner` | Removes a contract admin.                                                                            |
+| `resumeProgram`                   | None                                                                                                            | `onlyContractOwner` | Sets availability status of the staking pools back to predefined settings.                                                         |
+| `restoreFunds`                    | `uint256 poolID` `uint256 tokenAmount`                                                                           | `onlyAdmins`        | Restores collected funds back to a staking pool.                                                                     |
+| `setDefaultMinimumDeposit`        | `uint256 newDefaultMinimumDeposit`                                                                              | `onlyContractOwner` | Sets the program default minimum deposit.                                                              |
+| `setDefaultStakingTarget`         | `uint256 newStakingTarget`                                                                                      | `onlyContractOwner` | Sets the program default staking target.                                                               |
+| `setPoolAPY`                      | `uint256 poolID` `uint256 newAPY`                                                                                | `onlyContractOwner` | Sets a new APY for a specified staking pool.                                                                         |
+| `setPoolMiniumumDeposit`          | `uint256 poolID` `uint256 newMinimumDeposit`                                                                     | `onlyAdmins`        | Sets a new minimum deposit for a staking pool.                                                                       |
+| `setPoolStakingTarget`            | `uint256 poolID` `uint256 newStakingTarget`                                                                      | `onlyContractOwner` | Sets a new staking target for a staking pool.                                                                        |
 
-> *The `launchDefault` function requires a single parameter called `lockedAndFlexibleAPY`, which is an array of two uint256 values. The first number in this array represents the APY for the locked staking pool, while the second number indicates the APY for the flexible staking pool.
-
-> **The predefined settings for the staking program are:
+> The predefined settings for the staking program are:
 >  1. Both staking and interest claiming is open for locked and flexible pools.
 >  2. Withdrawal is open for flexible pools, but closed for locked pools.
 
-
-The functions listed below enable the contract owner to modify specific variables and properties of the contract:
-
-| Function                          | Access Tier | Description                                           | Parameters                              |
-|:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `setPoolAPY`                      | **2**       | Sets the Annual Percentage Yield (APY) for a specific pool. | `uint256 poolID` `uint256 newAPY`        |
-| `setDefaultMinimumDeposit`        | **2**       | Sets the default minimum deposit amount.              | `uint256 newDefaultMinimumDeposit`      |
-| `setStakingTarget`                | **2**       | Sets the staking target for the contract.             | `uint128 newStakingTarget`              |
-
 > *Note:* When a new staking pool is created, it is added to the array of staking pools. Each pool has a unique identifier, called poolID. This ID is essentially the index of the pool within the array. The numbering for poolID starts from zero and increments sequentially with each new pool addition. This means the first pool created will have a poolID of 0, the second pool will have a poolID of 1, and so on.
 
-
-#### Contract Admins
-The contract owner has the ability to assign contract admins, and they are also authorized to adjust individual pool parameters like minimum staking amount or pool status.
-
-| Function                          | Access Tier | Description |
-|:----------------------------------|:------------|:------------------------------------------------------|
-| `addContractAdmin`                | **2**       | Adds a new admin to the contract. Requires that the input address is not the contract owner. |
-| `removeContractAdmin`             | **2**       | Removes an existing admin. |
-
-- **Note:** Both the `addContractAdmin`and the `removeContractAdmin` functions require a single parameter `userAddress` (variable type: `address`).
-
-
-The following functions allow both the contract owner and contract administrators to change specific variables and properties:
-
-| Function                          | Access Tier | Description                                           | Parameters                              |
-|:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `changePoolAvailabilityStatus`    | **1**       | Changes the availability status of a specific staking pool. | `uint256 poolID` `PoolDataType parameterToChange` `bool valueToAssign` |
-| `setPoolMiniumumDeposit`          | **1**       | Sets the minimum deposit amount for a specific pool.  | `uint256 poolID` `uint256 newMinimumDepositAmount` |
-
 ---
-### Staking Fund Management
-- Contract owners and admins can collect and restore the tokens staked in the pools if needed.
+### Data Collection and Retrieval
+The program keeps detailed data of stakers, withdrawers, interest claimers, fund collectors, fund restorers, interest providers, and interest collectors in each pool and provides a set of read functions for easy data retrieval.
 
-| Function                          | Access Tier | Description                                           | Parameters                              |
-|:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `collectFunds`                    | **1**       | Collects staked funds from a specified pool.          | `uint256 poolID` `uint256 tokenAmount`   |
-| `restoreFunds`                    | **1**       | Restores collected funds to a specified pool.         | `uint256 poolID` `uint256 tokenAmount`   |
-
----
-### Interest Pool Management
-- Interests for all pools are sourced from a common interest pool.
-- To enable stakers to claim interests, tokens must be transferred to the program's interest pool by the owner or admins.
-- If necessary, tokens from the interest pool can be collected back by the admins or the owner.
-
-| Function                          | Access Tier | Description                                           | Parameters                              |
-|:----------------------------------|:------------|:------------------------------------------------------|:----------------------------------------|
-| `provideInterest`                 | **1**       | Adds funds to the interest pool.                      | `uint256 tokenAmount`                   |
-| `collectInterestPoolFunds`        | **1**       | Collects funds from the interest pool.                | `uint256 tokenAmount`                   |
-
----
-### Data Collection and Access
-- The program keeps detailed data of stakers, withdrawers, interest claimers, fund collectors, fund restorers, interest providers, and interest collectors in each pool.
-- Information access is also tier-based, allowing for easy data retrieval depending on your access level.
-
-| Function                             | AccessTier | Parameters                  | Returns     | Note                              |
-|--------------------------------------|------------|-----------------------------|-------------|-----------------------------------|
-| `checkAPY`                           | **0**      | None                        | `uint256[]` |                                   |
-| `checkClaimableInterest`             | **0**      | `address userAddress` `uint256 poolID` `uint256 depositNumber` `bool withDecimals`      | `uint256[]` | User can access own data          |
-| `checkDepositCountOfAddress`         | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
-| `checkIfInterestClaimOpen`           | **0**      | None                        | `bool[]`    |                                   |
-| `checkIfStakingOpen`                 | **0**      | None                        | `bool[]`    |                                   |
-| `checkIfWithdrawalOpen`              | **0**      | None                        | `bool[]`    |                                   |
-| `checkInterestClaimedByAddress`      | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
-| `checkPoolType`                      | **0**      | None                        | `PoolType[]`|                                   |
-| `checkStakedAmountByAddress`         | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
-| `checkStakingTarget`                 | **0**      | None                        | `uint256`   |                                   |
-| `checkTotalStaked`                   | **0**      | None                        | `uint256[]` |                                   |
-| `checkWithdrewAmountByAddress`       | **0**      | `address addressInput`      | `uint256[]` | User can access own data          |
-| `checkYourAccessTier`                | **0**      | None                        | `AccessTier`|                                   |
-| `checkCollectedFundsByAddress`       | **1**      | `address addressInput`      | `uint256[]` |                                   |
-| `checkInterestCollectedByAddress`    | **1**      | `address userAddress`       | `uint256`   |                                   |
-| `checkInterestPool`                  | **1**      | None                        | `uint256`   |                                   |
-| `checkInterestProvidedByAddress`     | **1**      | `address userAddress`       | `uint256`   |                                   |
-| `checkTotalFundCollected`            | **1**      | None                        | `uint256[]` |                                   |
-
-
-- **Enum `PoolType`:** Defines the type of a staking pool.
-  ```solidity
-  enum PoolType { LOCKED, FLEXIBLE }
-  ```
+| Function | Parameters |
+|----------|------------|
+| `checkAPY` | `uint256 poolID` |
+| `checkClaimableInterest` | `address userAddress` `uint256 poolID` `uint256 depositNumber` `bool withDecimals` |
+| `checkCollectedFundsByAddress` | `address userAddress` `uint256 poolID` |
+| `checkConfirmationCode` | None |
+| `checkDefaultMinimumDeposit` | None |
+| `checkDefaultStakingTarget` | None |
+| `checkDepositCountOfAddress` | `address userAddress` `uint256 poolID` |
+| `checkEndDate` | `uint256 poolID` |
+| `checkIfInterestClaimOpen` | `uint256 poolID` |
+| `checkIfPoolEnded` | `uint256 poolID` |
+| `checkIfStakingOpen` | `uint256 poolID` |
+| `checkIfWithdrawalOpen` | `uint256 poolID` |
+| `checkInterestClaimedByAddress` | `address userAddress` `uint256 poolID` |
+| `checkInterestCollectedByAddress` | `address userAddress` |
+| `checkInterestPool` | None |
+| `checkInterestProvidedByAddress` | `address userAddress` |
+| `checkMinimumDeposit` | `uint256 poolID` |
+| `checkPoolCount` | None |
+| `checkPoolType` | `uint256 poolID` |
+| `checkStakedAmountByAddress` | `address userAddress` `uint256 poolID` |
+| `checkStakingTarget` | `uint256 poolID` |
+| `checkTotalFundCollected` | `uint256 poolID` |
+| `checkTotalInterestClaimed` | `uint256 poolID` |
+| `checkTotalStaked` | `uint256 poolID` |
+| `checkTotalWithdrawn` | `uint256 poolID` |
+| `checkWithdrawnAmountByAddress` | `address userAddress` `uint256 poolID` |
 
 ---
 ### Dependencies

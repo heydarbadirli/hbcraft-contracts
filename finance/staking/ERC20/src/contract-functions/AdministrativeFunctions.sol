@@ -16,30 +16,32 @@ contract AdministrativeFunctions is ComplianceCheck {
     onlyContractOwner {
         require(userAddress != msg.sender, "Owner can not be an admin");
         contractAdmins[userAddress] = true;
+
+        emit AddContractAdmin(userAddress);
     }
 
     function removeContractAdmin(address userAddress) external
     onlyContractOwner {
         contractAdmins[userAddress] = false;
+
+        emit RemoveContractAdmin(userAddress);
     }
 
-    function setStakingTarget(uint128 newStakingTarget) external
+    function setDefaultStakingTarget(uint256 newStakingTarget) external
     onlyContractOwner {
-        stakingTarget = newStakingTarget * tokenDecimals;
+        defaultStakingTarget = newStakingTarget * tokenDecimals;
+
+        emit UpdateDefaultStakingTarget(newStakingTarget);
     }
 
     function setDefaultMinimumDeposit(uint256 newDefaultMinimumDeposit) external
     onlyContractOwner {
         defaultMinimumDeposit = newDefaultMinimumDeposit * tokenDecimals;
+
+        emit UpdateDefaultMinimumDeposit(newDefaultMinimumDeposit);
     }
 
-    // NOTICE: For testing purposes
-    function setProgramEndDate(uint256 dateInTimestamp) external
-    onlyContractOwner {
-        programEndDate = dateInTimestamp;
-    }
-
-    function _addStakingPool(PoolType typeToSet, uint256 minimumDepositToSet, bool stakingAvailabilityStatusToCheck, uint256 APYToSet) private {
+    function _addStakingPool(PoolType typeToSet, uint256 stakingTargetToSet, uint256 minimumDepositToSet, bool stakingAvailabilityStatus, uint256 APYToSet) private {
         // NOTICE: Adds a new, empty StakingPool instance to the stakingPoolList
         stakingPoolList.push();
 
@@ -47,30 +49,62 @@ contract AdministrativeFunctions is ComplianceCheck {
         uint256 newIndex = stakingPoolList.length - 1;
         StakingPool storage targetPool = stakingPoolList[newIndex];
         targetPool.poolType = typeToSet; // Set the poolType
+        targetPool.stakingTarget = stakingTargetToSet; // Set the stakingTarget
         targetPool.minimumDeposit = minimumDepositToSet; // Set the minimumDeposit
-        targetPool.isStakingOpen = stakingAvailabilityStatusToCheck; // Set the isStakingOpen
+        targetPool.isStakingOpen = stakingAvailabilityStatus; // Set the isStakingOpen
         targetPool.isWithdrawalOpen = (typeToSet == PoolType.LOCKED) ? false : true; // Set the isWithdrawalOpen
         targetPool.isInterestClaimOpen = true; // Set the isInterestClaimOpen
         targetPool.APY = APYToSet; // Set the APY
+
+        emit AddStakingPool(newIndex, typeToSet, stakingTargetToSet / tokenDecimals, APYToSet / tokenDecimals, minimumDepositToSet / tokenDecimals);
     }
 
-    function addStakingPool(PoolType typeToSet, uint256 minimumDepositToSet, bool stakingAvailabilityStatusToCheck, uint256 APYToSet) external 
+    function _convertUintToPoolType(uint256 typeAsUint) private pure
+    returns (PoolType) {
+        require(typeAsUint < 2, "Invalid Type");
+        
+        if (typeAsUint == 0) {
+            return PoolType.LOCKED;
+        } else {
+            return PoolType.FLEXIBLE;
+        }
+    }
+
+    // DEV: Adds a pool with custom set properties
+    function addStakingPoolCustom(uint256 typeToSet, uint256 stakingTargetToSet, uint256 minimumDepositToSet, bool stakingAvailabilityStatus, uint256 APYToSet) external 
     onlyContractOwner {
-        _addStakingPool(typeToSet, minimumDepositToSet * tokenDecimals, stakingAvailabilityStatusToCheck, APYToSet * tokenDecimals);
+        require(APYToSet != 0, "APY has to be over 0!");
+        PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
+        _addStakingPool(typeAsPoolType, stakingTargetToSet * tokenDecimals, minimumDepositToSet * tokenDecimals, stakingAvailabilityStatus, APYToSet * tokenDecimals);
     }
 
-    // DEV: Changes staking pool availabilty parameters to the predefined parameter settings
+    // NOTICE: Adds a new empty StakingPool instances
+    // NOTICE: Sets its stakingTarget to defaultStakingTarget
+    // NOTICE: Sets its minimumDeposit to defaultMinimumDeposit
+    // NOTICE: Sets isStakingOpen true
+    // NOTICE: Sets isWithdrawalOpen false
+    // NOTICE: Sets isInterestClaimOpen true
+    function addStakingPoolDefault(uint256 typeToSet, uint256 APYToSet) external
+    onlyContractOwner {
+        require(APYToSet != 0, "APY has to be over 0!");
+        PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
+        _addStakingPool(typeAsPoolType, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * tokenDecimals);
+    }
+
+    // DEV: Changes availabilty properties of all the staking pools to the predefined property settings except the ones ended
     // DEV: The function is used in resumeProgram
     function _resetProgramSettings() private {
         for (uint256 poolNumber = 0; poolNumber < stakingPoolList.length; poolNumber++)
-        {
-            changePoolAvailabilityStatus(poolNumber, PoolDataType.IS_STAKING_OPEN, true);
-            changePoolAvailabilityStatus(poolNumber, PoolDataType.IS_INTEREST_CLAIM_OPEN, true);
-            if (stakingPoolList[poolNumber].poolType == PoolType.LOCKED){
-                changePoolAvailabilityStatus(poolNumber, PoolDataType.IS_WITHDRAWAL_OPEN, false);
-            }
-            else {
-                changePoolAvailabilityStatus(poolNumber, PoolDataType.IS_WITHDRAWAL_OPEN, true);
+        {   
+            if(_checkIfPoolEnded(poolNumber, true) == false){
+                changePoolAvailabilityStatus(poolNumber, 0, true);
+                changePoolAvailabilityStatus(poolNumber, 2, true);
+                if (stakingPoolList[poolNumber].poolType == PoolType.LOCKED){
+                    changePoolAvailabilityStatus(poolNumber, 1, false);
+                }
+                else {
+                    changePoolAvailabilityStatus(poolNumber, 1, true);
+                }
             }
         }
     }
@@ -81,86 +115,106 @@ contract AdministrativeFunctions is ComplianceCheck {
     // ======================================
     // DEV: Functions to easily launch, pause or resume the program
 
-    // NOTICE: Adds 2 new, empty StakingPool instances to the stakingPoolList: 1 PoolType.LOCKED, 1 PoolType.FLEXIBLE
-    // NOTICE: Sets their minimumDeposit to defaultMinimumDeposit
-    // NOTICE: Sets isStakingOpen true for both both
-    // NOTICE: Sets isWithdrawalOpen false for the PoolType.LOCKED, true for the PoolType.FLEXIBLE
-    function launchDefault(uint256[2] memory lockedAndFlexibleAPY) external
-    onlyContractOwner
-    ifProgramEnded {
-        require((
-        lockedAndFlexibleAPY[0] != 0 && lockedAndFlexibleAPY[1] != 0
-        ), "APY has to be over 0!");
-
-        _addStakingPool(PoolType.LOCKED, defaultMinimumDeposit, true, lockedAndFlexibleAPY[0] * tokenDecimals);
-        _addStakingPool(PoolType.FLEXIBLE, defaultMinimumDeposit, true, lockedAndFlexibleAPY[1] * tokenDecimals);
-    }
-
     // NOTICE: Sets isStakingOpen parameter of all the staking pools to false
-    // NOTICE: Sets iisWithdrawalOpen parameter of all the staking pools to false
-    function pauseProgram() public
-    onlyContractOwner
-    ifProgramEnded {
-        _changeAllPoolAvailabilityStatus(PoolDataType.IS_STAKING_OPEN, false);
-        _changeAllPoolAvailabilityStatus(PoolDataType.IS_WITHDRAWAL_OPEN, false);
-        _changeAllPoolAvailabilityStatus(PoolDataType.IS_INTEREST_CLAIM_OPEN, false);
+    // NOTICE: Sets isWithdrawalOpen parameter of all the staking pools to false
+    // NOTICE: Sets isInterestClaimOpen parameter of all the staking pools to false
+    function pauseProgram() external
+    onlyContractOwner {
+        _changeAllPoolAvailabilityStatus(0, false);
+        _changeAllPoolAvailabilityStatus(1, false);
+        _changeAllPoolAvailabilityStatus(2, false);
+
+        emit PauseProgram();
     }
 
     // NOTICE: Sets isStakingOpen parameter of all the staking pools to true
     // NOTICE: Sets isWithdrawalOpen parameter of all LOCKED staking pools to false
     // NOTICE: Sets isWithdrawalOpen parameter of all FLEXIBLE staking pools to true
-    function resumeProgram() public
-    onlyContractOwner
-    ifProgramEnded {
+    // NOTICE: Sets isInterestClaimOpen parameter of all the staking pools to true
+    function resumeProgram() external
+    onlyContractOwner {
         _resetProgramSettings();
-    }
 
-    // NOTICE: Sets programEndDate to the date and time the function called
-    // NOTICE: Sets isStakingOpen parameter of each pool to false
-    // NOTICE: Sets isWithDrawal parameter of each pool to true
-    function endProgram() external
-    onlyContractOwner
-    ifProgramEnded {
-        _changeAllPoolAvailabilityStatus(PoolDataType.IS_STAKING_OPEN, false);
-        _changeAllPoolAvailabilityStatus(PoolDataType.IS_WITHDRAWAL_OPEN, true);
-        _changeAllPoolAvailabilityStatus(PoolDataType.IS_INTEREST_CLAIM_OPEN, true);
-        programEndDate = block.timestamp;
+        emit ResumeProgram();
     }
 
 
     // ======================================
     // =       Pool Parameter Setters       =
     // ======================================
-    function changePoolAvailabilityStatus(uint256 poolID, PoolDataType parameterToChange, bool valueToAssign) public
-    onlyAdmins {
-        if (parameterToChange == PoolDataType.IS_STAKING_OPEN){
+    function setPoolStakingTarget(uint256 poolID, uint256 newStakingTarget) external
+    onlyContractOwner
+    ifPoolExists(poolID)
+    ifPoolEnded(poolID) {
+        stakingPoolList[poolID].stakingTarget = newStakingTarget * tokenDecimals;
+
+        emit UpdateStakingTarget(poolID, newStakingTarget);
+    }
+
+    function changePoolAvailabilityStatus(uint256 poolID, uint256 parameterToChange, bool valueToAssign) public
+    onlyAdmins
+    ifPoolExists(poolID)
+    ifPoolEnded(poolID) {
+        require(parameterToChange < 3, "Invalid Parameter");
+
+        if (parameterToChange == 0){
             stakingPoolList[poolID].isStakingOpen = valueToAssign;
-        } else if (parameterToChange == PoolDataType.IS_WITHDRAWAL_OPEN){
+
+            emit UpdateStakingStatus(msg.sender, poolID, valueToAssign);
+        } else if (parameterToChange == 1){
             stakingPoolList[poolID].isWithdrawalOpen = valueToAssign;
-        } else if (parameterToChange == PoolDataType.IS_INTEREST_CLAIM_OPEN){
+
+            emit UpdateWithdrawalStatus(msg.sender, poolID, valueToAssign);
+        } else if (parameterToChange == 2){
             stakingPoolList[poolID].isInterestClaimOpen = valueToAssign;
+
+            emit UpdateInterestClaimStatus(msg.sender, poolID, valueToAssign);
         }
     }
 
-    function _changeAllPoolAvailabilityStatus(PoolDataType parameterToChange, bool valueToAssign) private {
+    // DEV: Changes availabilty properties of all the staking pools except the ones ended
+    function _changeAllPoolAvailabilityStatus(uint256 parameterToChange, bool valueToAssign) private {
         for (uint256 poolNumber = 0; poolNumber < stakingPoolList.length; poolNumber++)
         {
-            changePoolAvailabilityStatus(poolNumber, parameterToChange, valueToAssign);
+            if(_checkIfPoolEnded(poolNumber, true) == false){changePoolAvailabilityStatus(poolNumber, parameterToChange, valueToAssign);}
         }
     }
 
     function setPoolAPY (uint256 poolID, uint256 newAPY) public
-    onlyContractOwner {
+    onlyContractOwner
+    ifPoolExists(poolID)
+    ifPoolEnded(poolID) {
         uint256 APYValueToWei = newAPY * tokenDecimals;
         require(newAPY != stakingPoolList[poolID].APY, "The same as current APY");
 
         stakingPoolList[poolID].APY = APYValueToWei;
-        emit APYUpdated(poolID, newAPY);
+        emit UpdateAPY(poolID, newAPY);
     }
 
-    function setPoolMiniumumDeposit(uint256 poolID, uint256 newMinimumDepositAmount) external
-    onlyAdmins {
-        stakingPoolList[poolID].minimumDeposit = newMinimumDepositAmount * tokenDecimals;
+    function setPoolMiniumumDeposit(uint256 poolID, uint256 newMinimumDeposit) external
+    onlyAdmins
+    ifPoolExists(poolID)
+    ifPoolEnded(poolID) {
+        stakingPoolList[poolID].minimumDeposit = newMinimumDeposit * tokenDecimals;
+
+        emit UpdateMinimumDeposit(poolID, newMinimumDeposit);
+    }
+
+    // NOTICE: Sets endDate property of a StakingPoll to the date and time the function called
+    // NOTICE: Sets isStakingOpen property of the StakingPoll to false
+    // NOTICE: Sets isWithDrawal property of the StakingPoll to true
+    // NOTICE: Sets isInterestClaimOpen property of the StakingPoll to true
+    function endStakingPool(uint256 poolID, uint256 _confirmationCode) external
+    onlyContractOwner
+    ifPoolExists(poolID)
+    ifPoolEnded(poolID) {
+        require(_confirmationCode == confirmationCode, "Incorrect Code");
+        changePoolAvailabilityStatus(poolID, 0, false);
+        changePoolAvailabilityStatus(poolID, 1, true);
+        changePoolAvailabilityStatus(poolID, 2, true);
+        stakingPoolList[poolID].endDate = block.timestamp;
+
+        emit EndStakingPool(poolID);
     }
 
 
@@ -171,6 +225,8 @@ contract AdministrativeFunctions is ComplianceCheck {
     function collectFunds(uint256 poolID, uint256 tokenAmount) external
     nonReentrant
     onlyAdmins
+    ifPoolExists(poolID)
+    ifPoolEnded(poolID)
     enoughFundsAvailable(poolID, tokenAmount * tokenDecimals) {
         uint256 amountWithDecimals = tokenAmount * tokenDecimals;
         StakingPool storage targetPool = stakingPoolList[poolID];
@@ -184,6 +240,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     // DEV: Restores funds collected from the target StakingPool
     function restoreFunds(uint256 poolID, uint256 tokenAmount) external
     nonReentrant
+    ifPoolExists(poolID)
     onlyAdmins {
         StakingPool storage targetPool = stakingPoolList[poolID];
         uint256 remainingFundsToRestore = targetPool.totalList[DataType.FUNDS_COLLECTED] - targetPool.totalList[DataType.FUNDS_RESTORED];

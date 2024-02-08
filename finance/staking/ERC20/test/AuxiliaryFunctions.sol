@@ -10,15 +10,43 @@ contract AuxiliaryFunctions is ReadFunctions {
     function _performPMActions(address userAddress, PMActions actionType) internal {
         if (userAddress != address(this)) {vm.startPrank(userAddress);}
 
-        if (actionType == PMActions.LAUNCH){
-            stakingContract.launchDefault([_lockedAPY, _flexibleAPY]);
-        } else if (actionType == PMActions.PAUSE){
+        if (actionType == PMActions.PAUSE){
             stakingContract.pauseProgram();
         } else if (actionType == PMActions.RESUME){
             stakingContract.resumeProgram();
-        } else if (actionType == PMActions.END){
-            stakingContract.endProgram();
         }
+
+        if (userAddress != address(this)) {vm.stopPrank();}
+    }
+
+    function _addPool(address userAddress, bool ifLocked) internal {
+        if (userAddress != address(this)) {vm.startPrank(userAddress);}
+
+        if (ifLocked){
+            stakingContract.addStakingPoolDefault(0, _lockedAPY);
+        } else{
+            stakingContract.addStakingPoolDefault(1, _flexibleAPY);
+        }
+
+        if (userAddress != address(this)) {vm.stopPrank();}
+    }
+
+    function _addCustomPool(address userAddress, bool ifLocked) internal {
+        if (userAddress != address(this)) {vm.startPrank(userAddress);}
+
+        if (ifLocked){
+            stakingContract.addStakingPoolCustom(0, _defaultStakingTarget, _defaultMinimumDeposit, true, _lockedAPY);
+        } else{
+            stakingContract.addStakingPoolCustom(1, _defaultStakingTarget, _defaultMinimumDeposit, false, _flexibleAPY);
+        }
+
+        if (userAddress != address(this)) {vm.stopPrank();}
+    }
+
+    function _endPool(address userAddress, uint256 poolID) internal {
+        if (userAddress != address(this)) {vm.startPrank(userAddress);}
+
+        stakingContract.endStakingPool(poolID, _confirmationCode);
 
         if (userAddress != address(this)) {vm.stopPrank();}
     }
@@ -64,5 +92,20 @@ contract AuxiliaryFunctions is ReadFunctions {
     function _stakeTokenWithAllowance(address userAddress, uint256 _poolID, uint256 tokenAmount) internal {
         _increaseAllowance(userAddress, tokenAmount);
         _stakeTokenWithTest(userAddress, _poolID, tokenAmount, false);
+    }
+
+    function _tryMultiUserMultiStake(uint256 howManyTimes, bool ifCreatePool) internal {
+        if(ifCreatePool){
+            for(uint256 No = 0; No < howManyTimes; No++){
+                _addPool(address(this), false);
+            }
+        }
+
+        for(uint256 No = 0; No < howManyTimes; No++){
+            for(uint256 userNo = 0; userNo < addressList.length; userNo++){
+                _increaseAllowance(addressList[userNo], amountToStake);
+                _stakeTokenWithTest(addressList[userNo], No, amountToStake, false);
+            }
+        }
     }
 }

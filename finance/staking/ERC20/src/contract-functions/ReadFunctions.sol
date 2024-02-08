@@ -12,31 +12,37 @@ contract ReadFunctions is ComplianceCheck {
     // ======================================
     // =  Functoins to check program data   =
     // ======================================
-    function checkStakingTarget() external view
+    function checkConfirmationCode() external view
     returns (uint256) {
-        return stakingTarget / tokenDecimals;
+        return confirmationCode;
+    }
+
+    function checkPoolCount() external view
+    returns (uint256) {
+        return _checkProgramStatus(true);
+    }
+
+    function checkDefaultStakingTarget() external view
+    returns (uint256) {
+        return defaultStakingTarget / tokenDecimals;
     }
 
     function checkDefaultMinimumDeposit() external view
-    onlyAdmins
     returns (uint256) {
         return defaultMinimumDeposit / tokenDecimals;
     }
 
     function checkInterestPool() external view
-    onlyAdmins
     returns (uint256) {
         return interestPool / tokenDecimals;
     }
 
     function checkInterestProvidedByAddress(address userAddress) external view
-    onlyAdmins
     returns (uint256) {
         return interestProviderList[userAddress] / tokenDecimals;
     }
 
     function checkInterestCollectedByAddress(address userAddress) external view
-    onlyAdmins
     returns (uint256) {
         return interestCollectorList[userAddress] / tokenDecimals;
     }
@@ -45,173 +51,100 @@ contract ReadFunctions is ComplianceCheck {
     // ======================================
     // =Functions to check stakingPool data =
     // ======================================
-    function _getPoolAPYDataList() private view
-    ifProgramLaunched
-    returns (uint256[] memory) {
-        uint256 length = stakingPoolList.length;
-        uint256[] memory propertyList = new uint256[](length);
-
-        for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
-            propertyList[poolNumber] = stakingPoolList[poolNumber].APY / tokenDecimals;
-        }
-        return propertyList;
+    function checkPoolType(uint256 poolID) external view
+    returns (uint256) {
+        return (stakingPoolList[poolID].poolType == PoolType.LOCKED) ? 0 : 1;
     }
 
-    function _getPoolTypeList() private view
-    ifProgramLaunched
-    returns (PoolType[] memory) {
-        uint256 length = stakingPoolList.length;
-        PoolType[] memory propertyList = new PoolType[](length);
-
-        for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
-            propertyList[poolNumber] = stakingPoolList[poolNumber].poolType;
-        }
-        return propertyList;
+    function checkStakingTarget(uint256 poolID) external view
+    returns (uint256) {
+        return stakingPoolList[poolID].stakingTarget / tokenDecimals;
     }
 
-    function _getPoolAvailabilityDataList(PoolDataType dataType) private view
-    ifProgramLaunched
-    returns (bool[] memory) {
-        uint256 length = stakingPoolList.length;
-        bool[] memory propertyList = new bool[](length);
-
-        for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
-            if (dataType == PoolDataType.IS_STAKING_OPEN){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].isStakingOpen;
-            } else if (dataType == PoolDataType.IS_WITHDRAWAL_OPEN){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].isWithdrawalOpen;
-            } else if (dataType == PoolDataType.IS_INTEREST_CLAIM_OPEN){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].isInterestClaimOpen;
-            }
-        }
-        return propertyList;
+    function checkMinimumDeposit(uint256 poolID) external view
+    returns (uint256) {
+        return stakingPoolList[poolID].minimumDeposit / tokenDecimals;
     }
 
-    function checkPoolType() external view
-    returns (PoolType[] memory) {
-        return _getPoolTypeList();
+    function checkAPY(uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].APY / tokenDecimals;
     }
 
-    function checkAPY() external view
-    returns (uint256[] memory){
-        return _getPoolAPYDataList();
+    // DEV: Returns timestamp
+    function checkEndDate(uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].endDate;
     }
 
-    function checkIfStakingOpen() external view 
-    returns (bool[] memory){
-        return _getPoolAvailabilityDataList(PoolDataType.IS_STAKING_OPEN);
+    // DEV: Availability status requests
+    function checkIfStakingOpen(uint256 poolID) external view 
+    returns (bool){
+        return stakingPoolList[poolID].isStakingOpen;
     }
 
-    function checkIfWithdrawalOpen() external view
-    returns (bool[] memory){
-        return _getPoolAvailabilityDataList(PoolDataType.IS_WITHDRAWAL_OPEN);
+    function checkIfWithdrawalOpen(uint256 poolID) external view
+    returns (bool){
+        return stakingPoolList[poolID].isWithdrawalOpen;
     }
 
-    function checkIfInterestClaimOpen() external view
-    returns (bool[] memory){
-        return _getPoolAvailabilityDataList(PoolDataType.IS_WITHDRAWAL_OPEN);
+    function checkIfInterestClaimOpen(uint256 poolID) external view
+    returns (bool){
+        return stakingPoolList[poolID].isInterestClaimOpen;
     }
 
-    function _getPoolTotalDataList(DataType dataType) private view
-    ifProgramLaunched
-    returns (uint256[] memory) {
-        uint256 length = stakingPoolList.length;
-        uint256[] memory propertyList = new uint256[](length);
-
-        for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
-            propertyList[poolNumber] = stakingPoolList[poolNumber].totalList[dataType] / tokenDecimals;
-            }
-
-        return propertyList;
+    function checkIfPoolEnded(uint256 poolID) external view
+    returns (bool){
+        return _checkIfPoolEnded(poolID, true);
     }
 
-    function checkTotalStaked() public view
-    returns (uint256[] memory){
-        return _getPoolTotalDataList(DataType.STAKED);
+    // DEV: Total data requests
+    function checkTotalStaked(uint256 poolID) public view
+    returns (uint256){
+        return stakingPoolList[poolID].totalList[DataType.STAKED] / tokenDecimals;
     }
 
-    function checkTotalWithdrew() external view
-    onlyAdmins
-    returns (uint256[] memory){
-        return _getPoolTotalDataList(DataType.WITHDREW);
+    function checkTotalWithdrawn(uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].totalList[DataType.WITHDREW] / tokenDecimals;
     }
 
-    function checkTotalInterestClaimed() external view
-    onlyAdmins
-    returns (uint256[] memory){
-        return _getPoolTotalDataList(DataType.INTEREST_CLAIMED);
+    function checkTotalInterestClaimed(uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].totalList[DataType.INTEREST_CLAIMED] / tokenDecimals;
     }
 
-    function checkTotalFundCollected() external view
-    onlyAdmins
-    returns (uint256[] memory){
-        return _getPoolTotalDataList(DataType.FUNDS_COLLECTED);
+    function checkTotalFundCollected(uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].totalList[DataType.FUNDS_COLLECTED] / tokenDecimals;
     }
 
 
     // ======================================
     // =    Functoins to check user data    =
     // ======================================
-    function _getUserDataList(DataType dataType, address userAddress) private view
-    ifProgramLaunched
-    returns (uint256[] memory) {
-        uint256 length = stakingPoolList.length;
-        uint256[] memory propertyList = new uint256[](length);
-
-        for (uint256 poolNumber = 0; poolNumber < length; poolNumber++) {
-            if (dataType == DataType.STAKED){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].stakerList[userAddress] / tokenDecimals;
-            } else if (dataType == DataType.WITHDREW){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].withdrawerList[userAddress] / tokenDecimals;
-            } else if (dataType == DataType.INTEREST_CLAIMED){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].interestClaimerList[userAddress] / tokenDecimals;
-            } else if (dataType == DataType.FUNDS_COLLECTED){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].fundCollectorList[userAddress] / tokenDecimals;
-            } else if (dataType == DataType.DEPOSIT_COUNT){
-                propertyList[poolNumber] = stakingPoolList[poolNumber].stakerDepositList[userAddress].length;
-            }
-            }
-        return propertyList;
-    }
-   
-    function checkStakedAmountByAddress(address addressInput) external view
-    personalDataAccess(addressInput)
-    returns (uint256[] memory){
-        return _getUserDataList(DataType.STAKED, addressInput);
+    function checkStakedAmountByAddress(address userAddress, uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].stakerList[userAddress] / tokenDecimals;
     }
 
-    function checkWithdrewAmountByAddress(address addressInput) external view
-    personalDataAccess(addressInput)
-    returns (uint256[] memory){
-        return _getUserDataList(DataType.WITHDREW, addressInput);
+    function checkWithdrawnAmountByAddress(address userAddress, uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].withdrawerList[userAddress] / tokenDecimals;
     }
 
-    function checkInterestClaimedByAddress(address addressInput) external view
-    personalDataAccess(addressInput)
-    returns (uint256[] memory){
-        return _getUserDataList(DataType.INTEREST_CLAIMED, addressInput);
+    function checkInterestClaimedByAddress(address userAddress, uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].interestClaimerList[userAddress] / tokenDecimals;
     }
 
-    function checkCollectedFundsByAddress(address addressInput) external view
-    onlyAdmins
-    returns (uint256[] memory){
-        return _getUserDataList(DataType.FUNDS_COLLECTED, addressInput);
+    function checkCollectedFundsByAddress(address userAddress, uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].fundCollectorList[userAddress] / tokenDecimals;
     }
 
-    function checkDepositCountOfAddress(address addressInput) external view
-    personalDataAccess(addressInput)
-    returns (uint256[] memory){
-        return _getUserDataList(DataType.DEPOSIT_COUNT, addressInput);
-    }
-
-    function checkYourAccessTier() external view
-    returns(AccessTier) {
-        if (msg.sender == contractOwner){
-            return AccessTier.OWNER;
-        } else if (contractAdmins[msg.sender]) {
-            return AccessTier.ADMIN;
-        } else {
-            return AccessTier.USER;
-        }
+    function checkDepositCountOfAddress(address userAddress, uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].stakerDepositList[userAddress].length;
     }
 }

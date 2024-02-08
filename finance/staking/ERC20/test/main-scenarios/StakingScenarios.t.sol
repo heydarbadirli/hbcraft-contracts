@@ -9,43 +9,51 @@ contract StakingScenarious is AuxiliaryFunctions {
     }
 
     function test_Staking_NoAllowance() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+        _addPool(address(this), true);
 
         _stakeTokenWithTest(userOne, 0, amountToStake, true);
     }
 
     function test_Staking_IncreasedAllowance() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+        _addPool(address(this), true);
 
         _increaseAllowance(userOne, amountToStake);
         _stakeTokenWithTest(userOne, 0, amountToStake, false);
     }
 
+    function test_Staking_MultiplePools() external {
+        _tryMultiUserMultiStake(10, true);
+    }
+
     function test_Staking_InsufficentDeposit() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+        _addPool(address(this), true);
 
         _increaseAllowance(userOne, 1);
         _stakeTokenWithTest(userOne, 0,  1, true);
     }
 
     function test_Staking_AmountExceedsTarget() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
-        _stakeTokenWithAllowance(address(this), 0, stakingContract.checkStakingTarget());
+        _addPool(address(this), true);
+        _addPool(address(this), true);
+        _stakeTokenWithAllowance(address(this), 0, stakingContract.checkStakingTarget(0));
 
         _increaseAllowance(userOne, amountToStake);
         _stakeTokenWithTest(userOne, 0, amountToStake, true);
+
+        _increaseAllowance(userOne, amountToStake);
+        _stakeTokenWithTest(userOne, 1, amountToStake, false);
     }
 
     function test_Staking_NotOpen() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
-        stakingContract.changePoolAvailabilityStatus(0, ProgramManager.PoolDataType.IS_STAKING_OPEN, false);
+        _addPool(address(this), true);
+        stakingContract.changePoolAvailabilityStatus(0, 0, false);
 
         _increaseAllowance(userOne, amountToStake);
         _stakeTokenWithTest(userOne, 0, amountToStake, true);
     }
 
     function test_Staking_ProgramPaused() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+        _addPool(address(this), true);
         _performPMActions(address(this), PMActions.PAUSE);
 
         _increaseAllowance(userOne, amountToStake);
@@ -53,7 +61,7 @@ contract StakingScenarious is AuxiliaryFunctions {
     }
 
     function test_Staking_ProgramResumed() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
+        _addPool(address(this), true);
         _performPMActions(address(this), PMActions.PAUSE);
         _performPMActions(address(this), PMActions.RESUME);
 
@@ -61,8 +69,12 @@ contract StakingScenarious is AuxiliaryFunctions {
     }
 
     function test_Staking_ProgramEnded() external {
-        _performPMActions(address(this), PMActions.LAUNCH);
-        _performPMActions(address(this), PMActions.END);
+        _addPool(address(this), true);
+        _addPool(address(this), true);
+        _endPool(address(this), 0);
+
+        _increaseAllowance(userOne, amountToStake);
+        _stakeTokenWithTest(userOne, 1, amountToStake, false);
 
         _increaseAllowance(userOne, amountToStake);
         _stakeTokenWithTest(userOne, 0, amountToStake, true);

@@ -38,13 +38,7 @@ contract AccessControl is ProgramManager {
             revert UnauthorizedAccess(tierToCheck);
         }
     }
-
-    function _checkIfPersonalData(address userAddress) private view {
-        if (msg.sender != userAddress && !contractAdmins[msg.sender] && msg.sender != contractOwner){
-            revert UnauthorizedAccess(AccessTier.ADMIN);
-        }
-    }
-
+    
 
     // ======================================
     // =             Modifiers              =
@@ -61,10 +55,4 @@ contract AccessControl is ProgramManager {
             _checkAccess(AccessTier.ADMIN);
             _;
         }
-
-    // DEV: The functions only accesible by the contractOwner, the addresses that have admin status, and the users if it is personal data request
-    modifier personalDataAccess (address userAddress) {
-        _checkIfPersonalData(userAddress);
-        _;
-    }
 }

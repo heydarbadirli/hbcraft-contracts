@@ -23,8 +23,8 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     error NoPoolsCreatedYet();
     // DEV: Exception raised if the function called to stake in a non-existent pool
     error PoolDoNotExist(uint256 poolID);
-    // DEV: Exception raised if the total staked token amount will surrpass the stakingTarget with the intended token amount to stake
-    error AmountExceedsTarget();
+    // DEV: Exception raised if the total staked token amount will surrpass the  of the pool with the intended token amount to stake
+    error AmountExceedsPoolTarget(uint256 poolID);
     // DEV: Exception raised if the token amount sent is over the fund left to restore
     error RestorationExceedsCollected(uint256 _tokenSent, uint256 _RemainingAmountToRestore);
     // DEV: Exception raised when the intended token amount to stake is lower than StakingPool.minimumDeposit
@@ -36,8 +36,9 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     error NotEnoughFundsInThePool(uint256 poolID, uint256 requestedAmount, uint256 availableAmount);
     // DEV: Exception raised when the admins try to collect from the interestPool when there is not enough token to collect
     error NotEnoughFundsInTheInterestPool(uint256 requestedAmount, uint256 availableAmount);
-    // DEV: Exception raised when the contract owner calls the program control functions after the program ended
-    error StakingProgramEnded();
+    // DEV: Exception raised when the contract owner tries to end a staking pool that is already ended
+    // DEV: Exception raised when a user tries to stake in a staking pool that is already ended
+    error PoolEnded(uint256 poolID);
 
 
     // ======================================
@@ -62,20 +63,43 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
         if (!(poolID < (stakingPoolList.length))) {revert PoolDoNotExist(poolID);}
     }
 
-    function _checkProgramStatus() private view {
+    function _checkProgramStatus(bool mustReturn) internal view
+    returns (uint256) {
         uint256 length = stakingPoolList.length;
-        if (length <= 0){revert NoPoolsCreatedYet();}
+
+        if (length <= 0 && !mustReturn){revert NoPoolsCreatedYet();}
+
+        return length;
     }
+
+    function _checkIfPoolEnded(uint256 poolID, bool mustReturn) internal view
+    returns (bool) {
+        uint256 targetPoolEndDate = stakingPoolList[poolID].endDate;
+        bool poolEnded = (targetPoolEndDate != 0 && block.timestamp >= targetPoolEndDate);
+
+        if (poolEnded && !mustReturn) {
+            revert PoolEnded(poolID);
+        }
+    
+        return poolEnded;
+    }
+
+    function _checkIfTargetReached(uint256 poolID, uint256 _amountToStake) internal view {
+        StakingPool storage targetStakingPool = stakingPoolList[poolID];
+        uint256 _stakingTarget = targetStakingPool.stakingTarget;
+        uint256 _totalStaked = targetStakingPool.totalList[DataType.STAKED];
+
+        if (_amountToStake > (_stakingTarget - _totalStaked)){
+            revert AmountExceedsPoolTarget(poolID);
+        }
+    }
+
 
     // ======================================
     // =             Modifiers              =
     // ======================================
-    modifier ifProgramEnded () {
-        if (programEndDate != 0){
-            if  (block.timestamp > programEndDate){
-                revert StakingProgramEnded();
-            }
-        }
+    modifier ifPoolEnded (uint256 poolID) {
+        _checkIfPoolEnded(poolID, false);
         _;
     }
 
@@ -85,7 +109,7 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     }
 
     modifier ifProgramLaunched () {
-        _checkProgramStatus();
+        _checkProgramStatus(false);
         _;
     }
 
@@ -95,11 +119,9 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
         _;
     }
     
-    // DEV: Checks if the total funds in the pools will exceed the target staking amount with the current staking request, raises exception if yes
-    modifier ifTargetReached (uint256 _amountToStake, uint256 _totalStaked){
-        if (_amountToStake > ((stakingTarget / tokenDecimals) - _totalStaked)){
-            revert AmountExceedsTarget();
-        }
+    // DEV: Checks if the staked funds in the pool will exceed the staking target with the current staking request, raises exception if yes
+    modifier ifTargetReached (uint256 poolID, uint256 _amountToStake){
+        _checkIfTargetReached(poolID, _amountToStake);
         _;
     }
 
@@ -141,14 +163,38 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     // ======================================
     // =              Events                =
     // ======================================
-    event Stake (address indexed user, uint256 indexed poolID, PoolType indexed poolType, uint256 depositNumber, uint256 tokenAmount);
-    event Withdraw (address indexed user, uint256 indexed poolID, PoolType indexed poolType, uint256 depositNumber, uint256 tokenAmount);
+    event CreateProgram (string stakingTokenTicker, address stakingTokenAddress, uint256 _defaultStakingTarget, uint256 _defaultMinimumDeposit);
+
+    event AddContractAdmin (address indexed user);
+    event RemoveContractAdmin (address indexed user);
+
+    event UpdateDefaultStakingTarget (uint256 newDefaultStakingTarget);
+    event UpdateDefaultMinimumDeposit (uint256 newDefaultMinimumDeposit);
+
+    event AddStakingPool (uint256 poolID, PoolType indexed poolType, uint256 stakingTarget, uint256 APY, uint256 minimumDeposit);
+    event EndStakingPool (uint256 poolID);
+
+    event PauseProgram ();
+    event ResumeProgram ();
+
+    event Stake (address indexed by, uint256 indexed poolID, PoolType indexed poolType, uint256 depositNumber, uint256 tokenAmount);
+    event Withdraw (address indexed by, uint256 indexed poolID, PoolType indexed poolType, uint256 depositNumber, uint256 tokenAmount);
+    event ClaimInterest (address indexed by, uint256 indexed poolID, uint256 depositNumber, uint256 tokenAmount);
+
     event CollectFunds (address indexed by, uint256 indexed poolID, uint256 tokenAmount);
     event RestoreFunds (address indexed by, uint256 indexed poolID, uint256 tokenAmount);
+
     event ProvideInterest (address indexed by, uint256 tokenAmount);
     event CollectInterest (address indexed by, uint256 tokenAmount);
-    event APYUpdated (uint256 indexed poolID, uint256 APY);
-    event ClaimInterest (address indexed user, uint256 indexed poolID, uint256 depositNumber, uint256 tokenAmount);
+
+    event UpdateStakingTarget (uint256 poolID, uint256 newStakingTarget);
+    event UpdateMinimumDeposit (uint256 poolID, uint256 newMinimumDeposit);
+    event UpdateAPY (uint256 indexed poolID, uint256 newAPY);
+
+    event UpdateStakingStatus (address indexed by, uint256 poolID, bool isOpen);
+    event UpdateWithdrawalStatus (address indexed by, uint256 poolID, bool isOpen);
+    event UpdateInterestClaimStatus (address indexed by, uint256 poolID, bool isOpen);
+    
 
     
     // ======================================

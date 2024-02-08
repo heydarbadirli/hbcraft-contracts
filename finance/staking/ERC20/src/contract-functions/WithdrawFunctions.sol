@@ -12,15 +12,16 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
     // ======================================
     // =     Interest Claim Functions       =
     // ======================================
-    function _calculateDaysPassed(uint256 startDate) private view
+    function _calculateDaysPassed(uint256 poolID, uint256 startDate) private view
     returns(uint256) {
         uint256 timePassed;
+        uint256 poolEndDate = stakingPoolList[poolID].endDate;
 
         // Calculate the time passed in seconds
-        if (programEndDate == 0 || block.timestamp <= programEndDate) {
+        if (poolEndDate == 0 || block.timestamp <= poolEndDate) {
             timePassed = block.timestamp - startDate;
         } else {
-            timePassed = programEndDate - startDate;
+            timePassed = poolEndDate - startDate;
         }
 
         // Convert the time elapsed to days
@@ -41,7 +42,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         // Check if assigning by reference works
         TokenDeposit storage deposit = stakingPoolList[poolID].stakerDepositList[userAddress][depositNumber];
 
-        daysPassed = _calculateDaysPassed(deposit.stakingDate);
+        daysPassed = _calculateDaysPassed(poolID, deposit.stakingDate);
         depositAPY = deposit.APY;
         depositAmount = deposit.amount;
         interestAlreadyClaimed = deposit.claimedInterest;
@@ -52,7 +53,6 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
 
     function checkClaimableInterest(address userAddress, uint256 poolID, uint256 depositNumber, bool withDecimals) external view
     ifPoolExists(poolID)
-    personalDataAccess(userAddress)
     returns (uint256) {
         return _calculateInterest(poolID, userAddress, depositNumber) / (withDecimals ? 1 : tokenDecimals);
     }
