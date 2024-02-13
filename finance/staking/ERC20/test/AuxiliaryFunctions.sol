@@ -54,7 +54,7 @@ contract AuxiliaryFunctions is ReadFunctions {
     function _increaseAllowance(address userAddress, uint256 tokenAmount) internal {
         if (userAddress != address(this)) {vm.startPrank(userAddress);}
 
-        myToken.increaseAllowance(address(stakingContract), tokenAmount * myTokenDecimals);
+        myToken.increaseAllowance(address(stakingContract), tokenAmount);
 
         if (userAddress != address(this)) {vm.stopPrank();}
     }
@@ -66,7 +66,7 @@ contract AuxiliaryFunctions is ReadFunctions {
             vm.expectRevert();
             stakingContract.stakeToken(_poolID, tokenAmount);
         } else {
-            uint256[] memory currentData = _getCurrentData(userAddress, _poolID, false);
+            uint256[] memory currentData = _getCurrentData(userAddress, _poolID);
             uint256 userDepositCountBefore = _getUserDepositCount(userAddress, _poolID);
 
             uint256[] memory expectedData = new uint256[](4);
@@ -77,7 +77,7 @@ contract AuxiliaryFunctions is ReadFunctions {
 
             stakingContract.stakeToken(_poolID, tokenAmount);
 
-            currentData = _getCurrentData(userAddress, _poolID, false);
+            currentData = _getCurrentData(userAddress, _poolID);
 
             assertEq(currentData[0], expectedData[0]);
             assertEq(currentData[1], expectedData[1]);

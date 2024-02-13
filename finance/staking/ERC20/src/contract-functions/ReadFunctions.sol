@@ -24,27 +24,27 @@ contract ReadFunctions is ComplianceCheck {
 
     function checkDefaultStakingTarget() external view
     returns (uint256) {
-        return defaultStakingTarget / tokenDecimals;
+        return defaultStakingTarget;
     }
 
     function checkDefaultMinimumDeposit() external view
     returns (uint256) {
-        return defaultMinimumDeposit / tokenDecimals;
+        return defaultMinimumDeposit;
     }
 
     function checkInterestPool() external view
     returns (uint256) {
-        return interestPool / tokenDecimals;
+        return interestPool;
     }
 
-    function checkInterestProvidedByAddress(address userAddress) external view
+    function checkInterestProvidedBy(address userAddress) external view
     returns (uint256) {
-        return interestProviderList[userAddress] / tokenDecimals;
+        return interestProviderList[userAddress];
     }
 
-    function checkInterestCollectedByAddress(address userAddress) external view
+    function checkInterestCollectedBy(address userAddress) external view
     returns (uint256) {
-        return interestCollectorList[userAddress] / tokenDecimals;
+        return interestCollectorList[userAddress];
     }
 
 
@@ -58,17 +58,17 @@ contract ReadFunctions is ComplianceCheck {
 
     function checkStakingTarget(uint256 poolID) external view
     returns (uint256) {
-        return stakingPoolList[poolID].stakingTarget / tokenDecimals;
+        return stakingPoolList[poolID].stakingTarget;
     }
 
     function checkMinimumDeposit(uint256 poolID) external view
     returns (uint256) {
-        return stakingPoolList[poolID].minimumDeposit / tokenDecimals;
+        return stakingPoolList[poolID].minimumDeposit;
     }
 
     function checkAPY(uint256 poolID) external view
     returns (uint256){
-        return stakingPoolList[poolID].APY / tokenDecimals;
+        return stakingPoolList[poolID].APY / (10 ** tokenDecimalCount);
     }
 
     // DEV: Returns timestamp
@@ -101,49 +101,54 @@ contract ReadFunctions is ComplianceCheck {
     // DEV: Total data requests
     function checkTotalStaked(uint256 poolID) public view
     returns (uint256){
-        return stakingPoolList[poolID].totalList[DataType.STAKED] / tokenDecimals;
+        return stakingPoolList[poolID].totalList[DataType.STAKED];
     }
 
     function checkTotalWithdrawn(uint256 poolID) external view
     returns (uint256){
-        return stakingPoolList[poolID].totalList[DataType.WITHDREW] / tokenDecimals;
+        return stakingPoolList[poolID].totalList[DataType.WITHDREW];
     }
 
     function checkTotalInterestClaimed(uint256 poolID) external view
     returns (uint256){
-        return stakingPoolList[poolID].totalList[DataType.INTEREST_CLAIMED] / tokenDecimals;
+        return stakingPoolList[poolID].totalList[DataType.INTEREST_CLAIMED];
     }
 
     function checkTotalFundCollected(uint256 poolID) external view
     returns (uint256){
-        return stakingPoolList[poolID].totalList[DataType.FUNDS_COLLECTED] / tokenDecimals;
+        return stakingPoolList[poolID].totalList[DataType.FUNDS_COLLECTED];
     }
 
 
     // ======================================
     // =    Functoins to check user data    =
     // ======================================
-    function checkStakedAmountByAddress(address userAddress, uint256 poolID) external view
+    function checkStakedAmountBy(address userAddress, uint256 poolID) external view
     returns (uint256){
-        return stakingPoolList[poolID].stakerList[userAddress] / tokenDecimals;
+        return stakingPoolList[poolID].stakerList[userAddress];
     }
 
-    function checkWithdrawnAmountByAddress(address userAddress, uint256 poolID) external view
+    function checkDepositStakedAmount(address userAddress, uint256 poolID, uint256 depositNumber) external view
     returns (uint256){
-        return stakingPoolList[poolID].withdrawerList[userAddress] / tokenDecimals;
+        return stakingPoolList[poolID].stakerDepositList[userAddress][depositNumber].amount;
     }
 
-    function checkInterestClaimedByAddress(address userAddress, uint256 poolID) external view
+    function checkWithdrawnAmountBy(address userAddress, uint256 poolID) external view
     returns (uint256){
-        return stakingPoolList[poolID].interestClaimerList[userAddress] / tokenDecimals;
+        return stakingPoolList[poolID].withdrawerList[userAddress];
     }
 
-    function checkCollectedFundsByAddress(address userAddress, uint256 poolID) external view
+    function checkInterestClaimedBy(address userAddress, uint256 poolID) external view
     returns (uint256){
-        return stakingPoolList[poolID].fundCollectorList[userAddress] / tokenDecimals;
+        return stakingPoolList[poolID].interestClaimerList[userAddress];
     }
 
-    function checkDepositCountOfAddress(address userAddress, uint256 poolID) external view
+    function checkCollectedFundsBy(address userAddress, uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].fundCollectorList[userAddress];
+    }
+
+    function checkDepositCountOfAddress(address userAddress, uint256 poolID) public view
     returns (uint256){
         return stakingPoolList[poolID].stakerDepositList[userAddress].length;
     }

@@ -128,7 +128,7 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     // DEV: Checks if the deposit amount is higher the minimum required amount, raises exception if not
     modifier enoughTokenSent (uint256 tokenSent, uint256 _minimumDeposit) {
         if (tokenSent < _minimumDeposit){
-            revert InsufficentDeposit({_tokenSent : tokenSent / tokenDecimals, _requiredAmount : _minimumDeposit / tokenDecimals});
+            revert InsufficentDeposit(tokenSent, _minimumDeposit);
         }
         _;
     }
@@ -144,6 +144,7 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     // DEV: Checks if enough funds available in a pool, raises exception if not
     modifier enoughFundsAvailable (uint256 poolID, uint256 amountToCheck) {
         StakingPool storage targetStakingPool = stakingPoolList[poolID];
+        
         uint256 fundAvailableToClaim = targetStakingPool.totalList[DataType.STAKED] - targetStakingPool.totalList[DataType.FUNDS_COLLECTED] + targetStakingPool.totalList[DataType.FUNDS_RESTORED];
         if (amountToCheck > fundAvailableToClaim){
                 revert NotEnoughFundsInThePool(poolID, amountToCheck, fundAvailableToClaim);

@@ -35,7 +35,7 @@ contract StakingScenarious is AuxiliaryFunctions {
     function test_Staking_AmountExceedsTarget() external {
         _addPool(address(this), true);
         _addPool(address(this), true);
-        _stakeTokenWithAllowance(address(this), 0, stakingContract.checkStakingTarget(0));
+        _stakeTokenWithAllowance(userThree, 0, stakingContract.checkStakingTarget(0));
 
         _increaseAllowance(userOne, amountToStake);
         _stakeTokenWithTest(userOne, 0, amountToStake, true);

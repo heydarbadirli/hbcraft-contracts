@@ -13,7 +13,7 @@ contract ProgramManager {
     // =          State Variables           =
     // ======================================
     IERC20Metadata public stakingToken;
-    uint256 internal tokenDecimals;
+    uint256 public tokenDecimalCount;
 
     // NOTICE: Default value to set the stakingTarget property for the new StakingPool if not specified
     uint256 internal defaultStakingTarget;
@@ -71,6 +71,7 @@ contract ProgramManager {
         uint256 APY;
     
         mapping (address => uint256) stakerList;
+        address[] stakerAddressList;
         mapping (address => TokenDeposit[]) stakerDepositList;
 
         mapping (address => uint256) withdrawerList;

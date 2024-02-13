@@ -32,6 +32,11 @@ contract WriteFunctions is ComplianceCheck {
 
         if (action == ActionType.STAKING) {
             targetDepositList.push(TokenDeposit(block.timestamp, 0, tokenAmount, targetPool.APY, 0));
+
+            targetPool.stakerAddressList.push();
+            uint256 newIndex = targetPool.stakerAddressList.length - 1;
+            targetPool.stakerAddressList[newIndex] = userAddress;
+
             _updateStakerBalance(action, poolID, userAddress, tokenAmount);
         } else if (action == ActionType.WITHDRAWAL) {
             TokenDeposit storage targetDeposit = targetDepositList[depositNumber];

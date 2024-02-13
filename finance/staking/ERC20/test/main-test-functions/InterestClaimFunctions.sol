@@ -6,16 +6,16 @@ import "../AuxiliaryFunctions.sol";
 contract InterestClaimFunctions is AuxiliaryFunctions {
     function _trackInterestClaim(address userAddress, uint256 _poolID, uint256 _depositNo) internal view
     returns (uint256) {
-        uint256 userBalanceBefore = _getTokenBalance(userAddress, true);
-        uint256 _claimableInterest = stakingContract.checkClaimableInterest(userAddress, _poolID, _depositNo, true);
+        uint256 userBalanceBefore = _getTokenBalance(userAddress);
+        uint256 _claimableInterest = stakingContract.checkClaimableInterestBy(userAddress, _poolID, _depositNo);
         uint256 userBalanceAfter = userBalanceBefore + _claimableInterest;
 
         return userBalanceAfter;
     }
 
     function _testInterestClaim(address userAddress, uint256 _poolID, uint256 _depositNo, uint256 userBalanceAfter) internal {
-        assertEq(stakingContract.checkClaimableInterest(userAddress, _poolID, _depositNo, true), 0);
-        assertEq(_getTokenBalance(userAddress, true), userBalanceAfter);
+        assertEq(stakingContract.checkClaimableInterestBy(userAddress, _poolID, _depositNo), 0);
+        assertEq(_getTokenBalance(userAddress), userBalanceAfter);
     }
 
     function _claimInterestWithTest(address userAddress, uint256 _poolID, uint256 _depositNo, bool ifRevertExpected) internal {
@@ -42,12 +42,12 @@ contract InterestClaimFunctions is AuxiliaryFunctions {
             vm.expectRevert();
             stakingContract.claimAllInterest(_poolID);
         } else {
-            uint256 userBalanceBefore = _getTokenBalance(userAddress, true);
+            uint256 userBalanceBefore = _getTokenBalance(userAddress);
 
             uint256 _claimableInterest;
             uint256 depositCount = stakingContract.checkDepositCountOfAddress(userAddress, _poolID);
             for(uint256 _depositNo = 0; _depositNo < depositCount; _depositNo++){
-                _claimableInterest += stakingContract.checkClaimableInterest(userAddress, _poolID, _depositNo, true);
+                _claimableInterest += stakingContract.checkClaimableInterestBy(userAddress, _poolID, _depositNo);
             }
 
             uint256 userBalanceAfter = userBalanceBefore + _claimableInterest;
@@ -57,11 +57,11 @@ contract InterestClaimFunctions is AuxiliaryFunctions {
             uint256 newclaimableInterest;
             depositCount = stakingContract.checkDepositCountOfAddress(userAddress, _poolID);
             for(uint256 _depositNo = 0; _depositNo < depositCount; _depositNo++){
-                newclaimableInterest += stakingContract.checkClaimableInterest(userAddress, _poolID, _depositNo, true);
+                newclaimableInterest += stakingContract.checkClaimableInterestBy(userAddress, _poolID, _depositNo);
             }
 
             assertEq(newclaimableInterest, 0);
-            assertEq(_getTokenBalance(userAddress, true), userBalanceAfter);
+            assertEq(_getTokenBalance(userAddress), userBalanceAfter);
         }
 
         if (userAddress != address(this)) {vm.stopPrank();}

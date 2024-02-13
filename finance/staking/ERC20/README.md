@@ -1,10 +1,24 @@
 <img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="200" height="200"/>
 
 # ERC20 Staking by HB Craft
-![version](https://img.shields.io/badge/version-1.2.0-blue)
+![version](https://img.shields.io/badge/version-1.3.0-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### What's New?
+### Version 1.3.0 - 2024/02/13
+### 1) CHANGED: Decimal Support for All Functions
+All contract functions have been updated to work with decimal values only (token units). This change requires both input arguments to include decimals and returns output values with decimals, aligning with the standards of other blockchain contracts. This adjustment was made to prioritize compliance over simplicity. The update aims to reduce confusion and simplify integration for developers working with multiple libraries.
+
+### 2) ADDED: New Function Read Functions
+**`checkTotalClaimableInterestBy`:** Returns the total claimable interest for an address in a pool. It simplifies the frontend display of total claimable interest for users, removing the need to iterate individual deposits with the `checkClaimableInterestBy` function.
+**`checkDepositStakedAmount`:** Returns the token amount deposited by a user in a single transaction.
+**`checkTotalClaimableInterest`:** Returns the total interest accrued and claimable by all users in a pool, aiding in the management of interest payouts and avoiding errors related to insufficient funds in the interest pool beforehand.
+**`checkDailyGeneratedInterest`:** Calculates and returns the total expected interest to be generated in a pool in a day based on the current staked token amount, facilitating better planning of interest allocations.
+
+### 3) ADDED: Modifier onlyUser
+A new modifier has been implemented to restrict staking actions to users only, excluding `contractOwner` and `contractAdmin`s. This addition closes potential loopholes that could allow for the cyclic exploitation of fund collection and staking processes.
+
+---
 ### Version 1.2.0 - 2024/02/08
 #### 1) REMOVED: 2 Global Variables
 The `stakingTarget` and `programEndDate` variables have been eliminated to introduce a more dynamic staking pool management approach. This change supports a flexible structure, allowing for tailored management of each staking pool.
@@ -35,7 +49,7 @@ The addition of new properties to staking pools necessitated the modification of
 - Read functions have been updated to return a single value based on the `poolID`
 - `checkStakingTarget` and `checkMinimumDeposit` functions is now used for retrieving StakingPool property values
 
-#### 6) CHANGED: the `endProgram` function
+#### 6) CHANGED: The `endProgram` function
 The endProgram function has been renamed to endStakingPool and the `ifPoolEnded` is introduced to enforce the immutability of concluded pools by preventing further modifications.
 - The stakers in finalized pools can still withdraw their stakes and claim their interest.
 
@@ -69,7 +83,7 @@ A series of new events are added to improve the ease of tracking program updates
 - Unit tests have been broadened to align with the latest updates, ensuring comprehensive validation of the modified functionalities.
 - The `InterestManagementScenarios.t.sol` file name is changed to `MainManagementScenarios.t.sol` to better reflect the comprehensive testing of main management scenarios.
 
-#### CHANGED: Enum Types as an Input/Output
+#### 10) CHANGED: Enum Types as an Input/Output
 Custom enum types as a function argument or return type have been converted to uint256 to ensure compatibility across different software interfaces.
 
 For the `uint256 typeToSet` argument the numbers represent:
@@ -86,7 +100,7 @@ For the `uint256 parameterToChange` argument the numbers represent:
 
 ---
 ### Version 1.1.1 - 2024/02/05
-#### Fixed: Automatic Interest Claim
+#### FIXED: Automatic Interest Claim
 With this update, when users initiate a deposit withdrawal, the program also automatically sends the accumulated interest for that deposit to the user. However, when the interest claim from the staking pool is disabled, the program will default to withdrawing only the deposited amount, bypassing the interest claim.
 
 ---

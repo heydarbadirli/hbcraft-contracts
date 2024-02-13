@@ -29,14 +29,14 @@ contract AdministrativeFunctions is ComplianceCheck {
 
     function setDefaultStakingTarget(uint256 newStakingTarget) external
     onlyContractOwner {
-        defaultStakingTarget = newStakingTarget * tokenDecimals;
+        defaultStakingTarget = newStakingTarget;
 
         emit UpdateDefaultStakingTarget(newStakingTarget);
     }
 
     function setDefaultMinimumDeposit(uint256 newDefaultMinimumDeposit) external
     onlyContractOwner {
-        defaultMinimumDeposit = newDefaultMinimumDeposit * tokenDecimals;
+        defaultMinimumDeposit = newDefaultMinimumDeposit;
 
         emit UpdateDefaultMinimumDeposit(newDefaultMinimumDeposit);
     }
@@ -56,7 +56,7 @@ contract AdministrativeFunctions is ComplianceCheck {
         targetPool.isInterestClaimOpen = true; // Set the isInterestClaimOpen
         targetPool.APY = APYToSet; // Set the APY
 
-        emit AddStakingPool(newIndex, typeToSet, stakingTargetToSet / tokenDecimals, APYToSet / tokenDecimals, minimumDepositToSet / tokenDecimals);
+        emit AddStakingPool(newIndex, typeToSet, stakingTargetToSet, APYToSet / (10 ** tokenDecimalCount), minimumDepositToSet);
     }
 
     function _convertUintToPoolType(uint256 typeAsUint) private pure
@@ -75,7 +75,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     onlyContractOwner {
         require(APYToSet != 0, "APY has to be over 0!");
         PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
-        _addStakingPool(typeAsPoolType, stakingTargetToSet * tokenDecimals, minimumDepositToSet * tokenDecimals, stakingAvailabilityStatus, APYToSet * tokenDecimals);
+        _addStakingPool(typeAsPoolType, stakingTargetToSet, minimumDepositToSet, stakingAvailabilityStatus, APYToSet * (10 ** tokenDecimalCount));
     }
 
     // NOTICE: Adds a new empty StakingPool instances
@@ -88,7 +88,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     onlyContractOwner {
         require(APYToSet != 0, "APY has to be over 0!");
         PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
-        _addStakingPool(typeAsPoolType, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * tokenDecimals);
+        _addStakingPool(typeAsPoolType, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * (10 ** tokenDecimalCount));
     }
 
     // DEV: Changes availabilty properties of all the staking pools to the predefined property settings except the ones ended
@@ -113,7 +113,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     // ======================================
     // =     Program Control Functions      =
     // ======================================
-    // DEV: Functions to easily launch, pause or resume the program
+    // DEV: Functions to easily pause or resume the program
 
     // NOTICE: Sets isStakingOpen parameter of all the staking pools to false
     // NOTICE: Sets isWithdrawalOpen parameter of all the staking pools to false
@@ -146,7 +146,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     onlyContractOwner
     ifPoolExists(poolID)
     ifPoolEnded(poolID) {
-        stakingPoolList[poolID].stakingTarget = newStakingTarget * tokenDecimals;
+        stakingPoolList[poolID].stakingTarget = newStakingTarget;
 
         emit UpdateStakingTarget(poolID, newStakingTarget);
     }
@@ -184,8 +184,8 @@ contract AdministrativeFunctions is ComplianceCheck {
     onlyContractOwner
     ifPoolExists(poolID)
     ifPoolEnded(poolID) {
-        uint256 APYValueToWei = newAPY * tokenDecimals;
-        require(newAPY != stakingPoolList[poolID].APY, "The same as current APY");
+        uint256 APYValueToWei = newAPY * (10 ** tokenDecimalCount);
+        require(APYValueToWei != stakingPoolList[poolID].APY, "The same as current APY");
 
         stakingPoolList[poolID].APY = APYValueToWei;
         emit UpdateAPY(poolID, newAPY);
@@ -195,12 +195,12 @@ contract AdministrativeFunctions is ComplianceCheck {
     onlyAdmins
     ifPoolExists(poolID)
     ifPoolEnded(poolID) {
-        stakingPoolList[poolID].minimumDeposit = newMinimumDeposit * tokenDecimals;
+        stakingPoolList[poolID].minimumDeposit = newMinimumDeposit;
 
         emit UpdateMinimumDeposit(poolID, newMinimumDeposit);
     }
 
-    // NOTICE: Sets endDate property of a StakingPoll to the date and time the function called
+    // NOTICE: Sets endDate property of a StakingPool to the date and time the function called
     // NOTICE: Sets isStakingOpen property of the StakingPoll to false
     // NOTICE: Sets isWithDrawal property of the StakingPoll to true
     // NOTICE: Sets isInterestClaimOpen property of the StakingPoll to true
@@ -227,13 +227,12 @@ contract AdministrativeFunctions is ComplianceCheck {
     onlyAdmins
     ifPoolExists(poolID)
     ifPoolEnded(poolID)
-    enoughFundsAvailable(poolID, tokenAmount * tokenDecimals) {
-        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
+    enoughFundsAvailable(poolID, tokenAmount) {
         StakingPool storage targetPool = stakingPoolList[poolID];
-        targetPool.fundCollectorList[msg.sender] += amountWithDecimals;
-        targetPool.totalList[DataType.FUNDS_COLLECTED] += amountWithDecimals;
+        targetPool.fundCollectorList[msg.sender];
+        targetPool.totalList[DataType.FUNDS_COLLECTED];
 
-        _sendToken(msg.sender, amountWithDecimals);
+        _sendToken(msg.sender, tokenAmount);
         emit CollectFunds(msg.sender, poolID, tokenAmount);
     }
 
@@ -245,16 +244,14 @@ contract AdministrativeFunctions is ComplianceCheck {
         StakingPool storage targetPool = stakingPoolList[poolID];
         uint256 remainingFundsToRestore = targetPool.totalList[DataType.FUNDS_COLLECTED] - targetPool.totalList[DataType.FUNDS_RESTORED];
 
-        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
-
-        if (amountWithDecimals > remainingFundsToRestore){
+        if (tokenAmount > remainingFundsToRestore){
             revert RestorationExceedsCollected(tokenAmount, remainingFundsToRestore);
         }
 
-        _receiveToken(amountWithDecimals);
+        _receiveToken(tokenAmount);
 
-        targetPool.fundRestorerList[msg.sender] += amountWithDecimals;
-        targetPool.totalList[DataType.FUNDS_RESTORED] += amountWithDecimals;
+        targetPool.fundRestorerList[msg.sender] += tokenAmount;
+        targetPool.totalList[DataType.FUNDS_RESTORED] += tokenAmount;
 
         emit RestoreFunds(msg.sender, poolID, tokenAmount);
     }
@@ -262,24 +259,21 @@ contract AdministrativeFunctions is ComplianceCheck {
     function collectInterestPoolFunds(uint256 tokenAmount) external
     nonReentrant
     onlyAdmins
-    enoughFundsInInterestPool(tokenAmount * tokenDecimals){
-        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
+    enoughFundsInInterestPool(tokenAmount){
+        interestCollectorList[msg.sender] += tokenAmount;
+        interestPool -= tokenAmount;
 
-        interestCollectorList[msg.sender] += amountWithDecimals;
-        interestPool -= amountWithDecimals;
-
-        _sendToken(msg.sender, amountWithDecimals);
+        _sendToken(msg.sender, tokenAmount);
         emit CollectInterest(msg.sender, tokenAmount);
     }
 
     function provideInterest(uint256 tokenAmount) external
     nonReentrant
     onlyAdmins {
-        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
-        _receiveToken(amountWithDecimals);
+        _receiveToken(tokenAmount);
 
-        interestProviderList[msg.sender] += amountWithDecimals;
-        interestPool += amountWithDecimals;
+        interestProviderList[msg.sender] += tokenAmount;
+        interestPool += tokenAmount;
 
         emit ProvideInterest(msg.sender, tokenAmount);
     }

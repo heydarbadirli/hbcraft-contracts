@@ -30,10 +30,10 @@ contract ERC20Staking is AdministrativeFunctions, StakingFunctions, WithdrawFunc
         contractOwner = msg.sender;
 
         stakingToken = IERC20Metadata(tokenAddress);
-        tokenDecimals = 10 ** stakingToken.decimals();
+        tokenDecimalCount = stakingToken.decimals();
 
-        defaultStakingTarget = _defaultStakingTarget * tokenDecimals;
-        defaultMinimumDeposit = ((_defaultMinimumDeposit > 0) ? _defaultMinimumDeposit : 1) * tokenDecimals;
+        defaultStakingTarget = _defaultStakingTarget;
+        defaultMinimumDeposit = _defaultMinimumDeposit;
 
         confirmationCode = _confirmationCode;
 

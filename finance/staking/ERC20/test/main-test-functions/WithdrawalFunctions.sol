@@ -8,13 +8,13 @@ contract WithdrawalFunctions is InterestClaimFunctions {
     returns (uint256) {
         uint256 _interestToClaim = 0;
         if (_depositNo != 9999){
-            _interestToClaim = stakingContract.checkClaimableInterest(userAddress, _poolID, _depositNo, true);
+            _interestToClaim = stakingContract.checkClaimableInterestBy(userAddress, _poolID, _depositNo);
         } else {
             uint256 poolCount = stakingContract.checkPoolCount();
             for(uint256 _poolNo = 0; _poolNo < poolCount; _poolNo++){
                 uint256 depositCount = stakingContract.checkDepositCountOfAddress(userAddress, _poolNo);
                 for(uint256 _dNo = 0; _dNo < depositCount; _dNo++){
-                    _interestToClaim += stakingContract.checkClaimableInterest(userAddress, _poolNo, _dNo, true);
+                    _interestToClaim += stakingContract.checkClaimableInterestBy(userAddress, _poolNo, _dNo);
                 }
             }
         }
@@ -39,7 +39,7 @@ contract WithdrawalFunctions is InterestClaimFunctions {
             vm.expectRevert();
             _withdrawTokens(_poolID, _depositNo);
         } else {
-            uint256[] memory currentData = _getCurrentData(userAddress, _poolID, true);
+            uint256[] memory currentData = _getCurrentData(userAddress, _poolID);
 
             uint256 _interestToClaim;
             if(ifWithInterest){_interestToClaim = _trackInterestClaimWithWithdrawal(userAddress, _poolID, _depositNo);}
@@ -51,11 +51,11 @@ contract WithdrawalFunctions is InterestClaimFunctions {
 
             uint256[] memory expectedData = new uint256[](4);
             expectedData[0] = currentData[0] - withdrawnByUser;
-            expectedData[1] = currentData[1] + (withdrawnByUser * myTokenDecimals) + ((ifWithInterest) ? _interestToClaim : 0);
+            expectedData[1] = currentData[1] + withdrawnByUser + ((ifWithInterest) ? _interestToClaim : 0);
             expectedData[2] = currentData[2] - withdrawnByUser;
-            expectedData[3] = currentData[3] - (withdrawnByUser * myTokenDecimals) - ((ifWithInterest) ? _interestToClaim : 0);
+            expectedData[3] = currentData[3] - withdrawnByUser - ((ifWithInterest) ? _interestToClaim : 0);
 
-            currentData = _getCurrentData(userAddress, _poolID, true);
+            currentData = _getCurrentData(userAddress, _poolID);
 
             assertEq(currentData[0], expectedData[0]);
             assertEq(currentData[1], expectedData[1]);

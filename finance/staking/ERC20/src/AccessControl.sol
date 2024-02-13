@@ -36,6 +36,8 @@ contract AccessControl is ProgramManager {
             revert UnauthorizedAccess(tierToCheck);
         } else if (tierToCheck == AccessTier.ADMIN && !contractAdmins[msg.sender] && msg.sender != contractOwner) {
             revert UnauthorizedAccess(tierToCheck);
+        } else if (tierToCheck == AccessTier.USER && (contractAdmins[msg.sender] || msg.sender == contractOwner)) {
+            revert UnauthorizedAccess(tierToCheck);
         }
     }
     
@@ -45,14 +47,21 @@ contract AccessControl is ProgramManager {
     // ======================================
     // DEV: The functions only accesible by the address deployed the contract
     modifier onlyContractOwner () {
-            _checkAccess(AccessTier.OWNER);
-            _;
-        }
+        _checkAccess(AccessTier.OWNER);
+        _;
+    }
 
     // DEV: The functions only accesible by the contractOwner and the addresses that have admin status
     // DEV: The admin status can only be assigned by the address deployed the contract
     modifier onlyAdmins () {
-            _checkAccess(AccessTier.ADMIN);
-            _;
-        }
+        _checkAccess(AccessTier.ADMIN);
+        _;
+    }
+
+    // DEV: Modifies stakeToken function to make it accesible only by the users
+    // DEV: For preventing collectFunds ==> stakeToken ==> collectFunds ==> ... loophole
+    modifier onlyUser () {
+        _checkAccess(AccessTier.USER);
+        _;
+    }
 }

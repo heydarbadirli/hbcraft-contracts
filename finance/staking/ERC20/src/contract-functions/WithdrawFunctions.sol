@@ -39,7 +39,6 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         uint256 claimableInterest;
 
         // A local variable to refer to the appropriate TokenDeposit
-        // Check if assigning by reference works
         TokenDeposit storage deposit = stakingPoolList[poolID].stakerDepositList[userAddress][depositNumber];
 
         daysPassed = _calculateDaysPassed(poolID, deposit.stakingDate);
@@ -47,14 +46,57 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         depositAmount = deposit.amount;
         interestAlreadyClaimed = deposit.claimedInterest;
 
-        claimableInterest = (((depositAmount * ((depositAPY / 365) * daysPassed) / 100)) / tokenDecimals) - interestAlreadyClaimed;
+        claimableInterest = (((depositAmount * ((depositAPY / 365) * daysPassed) / 100)) / (10 ** tokenDecimalCount)) - interestAlreadyClaimed;
         return claimableInterest;
     }
 
-    function checkClaimableInterest(address userAddress, uint256 poolID, uint256 depositNumber, bool withDecimals) external view
+    function checkClaimableInterestBy(address userAddress, uint256 poolID, uint256 depositNumber) public view
     ifPoolExists(poolID)
     returns (uint256) {
-        return _calculateInterest(poolID, userAddress, depositNumber) / (withDecimals ? 1 : tokenDecimals);
+        return _calculateInterest(poolID, userAddress, depositNumber);
+    }
+
+    function checkTotalClaimableInterestBy(address userAddress, uint256 poolID) public view
+    returns (uint256) {
+        uint256 userDepositCount = checkDepositCountOfAddress(userAddress, poolID);
+        uint256 totalClaimableInterest;
+
+        for (uint256 depositNumber = 0; depositNumber < userDepositCount; depositNumber++){
+            totalClaimableInterest += checkClaimableInterestBy(userAddress, poolID, depositNumber);
+        }
+
+        return totalClaimableInterest;
+    }
+
+    function checkTotalClaimableInterest(uint256 poolID) external view
+    returns (uint256) {
+        uint256 totalClaimableInterest;
+
+        for (uint256 stakerNo = 0; stakerNo < stakingPoolList[poolID].stakerAddressList.length; stakerNo++){
+            totalClaimableInterest += checkTotalClaimableInterestBy(stakingPoolList[poolID].stakerAddressList[stakerNo], poolID);
+        }
+
+        return totalClaimableInterest;
+    }
+
+    function checkDailyGeneratedInterest(uint256 poolID) external view
+    returns(uint256) {
+        uint256 dailyTotalInterestGenerated;
+
+        uint256 userDepositCount;
+        address userAddress;
+
+        for (uint256 stakerNo = 0; stakerNo < stakingPoolList[poolID].stakerAddressList.length; stakerNo++){
+            userAddress = stakingPoolList[poolID].stakerAddressList[stakerNo];
+            userDepositCount = checkDepositCountOfAddress(userAddress, poolID);
+            
+            for (uint256 depositNumber = 0; depositNumber < userDepositCount; depositNumber++){
+                TokenDeposit storage targetDeposit = stakingPoolList[poolID].stakerDepositList[userAddress][depositNumber];
+                dailyTotalInterestGenerated += ((targetDeposit.amount * (targetDeposit.APY / 365) / 100)) / (10 ** tokenDecimalCount);
+            }
+        }
+
+        return dailyTotalInterestGenerated;
     }
 
     function _processInterestClaim(uint256 poolID, address userAddress, uint256 depositNumber, bool isBatchClaim) private {

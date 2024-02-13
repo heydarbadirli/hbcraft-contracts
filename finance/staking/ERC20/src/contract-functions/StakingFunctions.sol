@@ -11,15 +11,15 @@ import "./WriteFunctions.sol";
 contract StakingFunctions is ReadFunctions, WriteFunctions {
     function stakeToken(uint256 poolID, uint256 tokenAmount) external
     nonReentrant
+    onlyUser
     ifPoolExists(poolID)
     ifAvailable(poolID, PoolDataType.IS_STAKING_OPEN)
-    enoughTokenSent(tokenAmount * tokenDecimals, stakingPoolList[poolID].minimumDeposit)
-    ifTargetReached(poolID, tokenAmount * tokenDecimals) {
-        uint256 amountWithDecimals = tokenAmount * tokenDecimals;
-        _receiveToken(amountWithDecimals);
+    enoughTokenSent(tokenAmount, stakingPoolList[poolID].minimumDeposit)
+    ifTargetReached(poolID, tokenAmount) {
+        _receiveToken(tokenAmount);
 
         // Update the staking pool balances
-        _updatePoolData(ActionType.STAKING, poolID, msg.sender, 0, amountWithDecimals);
+        _updatePoolData(ActionType.STAKING, poolID, msg.sender, 0, tokenAmount);
 
         StakingPool storage targetPool = stakingPoolList[poolID];
         emit Stake(msg.sender, poolID, targetPool.poolType, targetPool.stakerDepositList[msg.sender].length - 1,  tokenAmount);

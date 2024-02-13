@@ -11,7 +11,7 @@ contract ReadFunctions is TestSetUp {
 
     function _getTotalStakedBy(address userAddress, uint256 poolID) internal view
     returns (uint256) {
-        return stakingContract.checkStakedAmountByAddress(userAddress, poolID);
+        return stakingContract.checkStakedAmountBy(userAddress, poolID);
     }
 
     function _getTotalWithdrawn(uint256 poolID) internal view
@@ -21,7 +21,7 @@ contract ReadFunctions is TestSetUp {
 
     function _getTotalWithdrawnBy(address userAddress, uint256 poolID) internal view
     returns (uint256) {
-        return stakingContract.checkWithdrawnAmountByAddress(userAddress, poolID);
+        return stakingContract.checkWithdrawnAmountBy(userAddress, poolID);
     }
 
     function _getUserDepositCount(address userAddress, uint256 poolID) internal view
@@ -29,18 +29,18 @@ contract ReadFunctions is TestSetUp {
         return stakingContract.checkDepositCountOfAddress(userAddress, poolID);
     }
 
-    function _getTokenBalance(address userAddress, bool withDecimals) internal view
+    function _getTokenBalance(address userAddress) internal view
     returns (uint256) {
-        return myToken.balanceOf(userAddress) / ((withDecimals) ? 1 : myTokenDecimals);
+        return myToken.balanceOf(userAddress);
     }
 
-    function _getCurrentData(address userAddress, uint256 _poolID, bool ifWithDecimals) internal view
+    function _getCurrentData(address userAddress, uint256 _poolID) internal view
     returns (uint256[] memory) {
         uint256[] memory data = new uint256[](4);
         data[0] = _getTotalStaked(_poolID);
-        data[1] = _getTokenBalance(userAddress, ifWithDecimals);
+        data[1] = _getTokenBalance(userAddress);
         data[2] = _getTotalStakedBy(userAddress, _poolID);
-        data[3] = _getTokenBalance(address(stakingContract), ifWithDecimals);
+        data[3] = _getTokenBalance(address(stakingContract));
         return data;
     }
 }

@@ -30,32 +30,22 @@ contract MainManagementScenarios is AuxiliaryFunctions {
         }
 
         vm.warp(1738401000);
-        for(uint8 No = 0; No < 5; No++){
-            _endPool(address(this), No);
+        for(uint8 No = 0; No < 10; No++){
+            if(No <= 4 || No >= 7){_endPool(address(this), No);}
         }
 
         vm.warp(1738402000);
         for(uint8 No; No < 10; No++){
-            if (No <= 4){
+            if (No <= 4 || No >= 7){
                 assertTrue(stakingContract.checkIfPoolEnded(No));
+                assertFalse(stakingContract.checkIfStakingOpen(No));
+                assertTrue(stakingContract.checkIfWithdrawalOpen(No));
+                assertTrue(stakingContract.checkIfInterestClaimOpen(No));
             } else {
                 assertFalse(stakingContract.checkIfPoolEnded(No));
-            }
-        }
-
-        vm.warp(1738403000);
-        for(uint8 No = 7; No < 10; No++){
-            _endPool(address(this), No);
-        }
-
-        vm.warp(1738404000);
-        for(uint8 No; No < 10; No++){
-            if (No <= 4){
-                assertTrue(stakingContract.checkIfPoolEnded(No));
-            } else if (No > 4 && No < 7) {
-                assertFalse(stakingContract.checkIfPoolEnded(No));
-            } else if (No >= 7) {
-                assertTrue(stakingContract.checkIfPoolEnded(No));
+                assertTrue(stakingContract.checkIfStakingOpen(No));
+                assertFalse(stakingContract.checkIfWithdrawalOpen(No));
+                assertTrue(stakingContract.checkIfInterestClaimOpen(No));
             }
         }
     }
