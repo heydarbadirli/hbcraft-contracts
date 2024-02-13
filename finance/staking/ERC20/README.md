@@ -6,16 +6,16 @@
 
 ### What's New?
 ### Version 1.3.0 - 2024/02/13
-### 1) CHANGED: Decimal Support for All Functions
+#### 1) CHANGED: Decimal Support for All Functions
 All contract functions have been updated to work with decimal values only (token units). This change requires both input arguments to include decimals and returns output values with decimals, aligning with the standards of other blockchain contracts. This adjustment was made to prioritize compliance over simplicity. The update aims to reduce confusion and simplify integration for developers working with multiple libraries.
 
-### 2) ADDED: New Read Functions
+#### 2) ADDED: New Read Functions
 - **`checkTotalClaimableInterestBy`:** Returns the total claimable interest for an address in a pool. It simplifies the frontend display of total claimable interest for users, removing the need to iterate individual deposits with the `checkClaimableInterestBy` function.
 - **`checkDepositStakedAmount`:** Returns the token amount deposited by a user in a single transaction.
 - **`checkTotalClaimableInterest`:** Returns the total interest accrued and claimable by all users in a pool, aiding in the management of interest payouts and avoiding errors related to insufficient funds in the interest pool beforehand.
 - **`checkDailyGeneratedInterest`:** Calculates and returns the total expected interest to be generated in a pool in a day based on the current staked token amount, facilitating better planning of interest allocations.
 
-### 3) ADDED: onlyUser Modifier
+#### 3) ADDED: onlyUser Modifier
 A new modifier has been implemented to restrict staking actions to users only, excluding `contractOwner` and `contractAdmin`s. This addition closes potential loopholes that could allow for the cyclic exploitation of fund collection and staking processes.
 
 ---
