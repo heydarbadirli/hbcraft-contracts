@@ -101,19 +101,27 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
 
     function _processInterestClaim(uint256 poolID, address userAddress, uint256 depositNumber, bool isBatchClaim) private {
         uint256 interestToClaim = _calculateInterest(poolID, userAddress, depositNumber);
-        if (interestPool < interestToClaim){revert NotEnoughFundsInTheInterestPool(interestToClaim, interestPool);}
+        
+        if (!isBatchClaim){
+            if (interestPool < interestToClaim){
+                revert NotEnoughFundsInTheInterestPool(interestToClaim, interestPool);
+            }
 
-        if (interestToClaim == 0){
-            if (isBatchClaim == false){
+            if (interestToClaim == 0){
                 revert("Nothing to Claim");
             }
-        } else {
-            _updatePoolData(ActionType.INTEREST_CLAIM, poolID, msg.sender, depositNumber, interestToClaim);
-            interestPool -= interestToClaim;
-
-            _sendToken(msg.sender, interestToClaim);
-            emit ClaimInterest(msg.sender, poolID, depositNumber, interestToClaim);
         }
+
+        if (isBatchClaim && (interestPool < interestToClaim || interestToClaim == 0)) {
+            // Skip claiming for this case
+            return;
+        }
+
+        // Proceed with claiming process
+        _updatePoolData(ActionType.INTEREST_CLAIM, poolID, msg.sender, depositNumber, interestToClaim);
+        interestPool -= interestToClaim;
+        _sendToken(msg.sender, interestToClaim);
+        emit ClaimInterest(msg.sender, poolID, depositNumber, interestToClaim);
     }
 
     // NOTICE: isBatchClaim = true because the function is called by withdraw function and we don't want to raise an exception when nothing to claim
