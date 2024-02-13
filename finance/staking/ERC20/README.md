@@ -165,7 +165,7 @@ The contract was initially written for RMV token staking. However, it supports a
 ### User Experience
 **Staking:**
 - Users can stake their tokens in various pools, each with distinct rules and rewards.
-- Users have the flexibility to stake their tokens as many times as and in any amount (higher than the minimum deposit requirement) they wish in any created staking pool.
+- Users have the flexibility to stake their tokens as many times as and in any amount they wish in any created staking pool.
 - Each time a user stakes in a pool, a unique deposit is created and added to the deposit list of the user within that specific staking pool with the staking date and the APY that the staking pool had at the time of staking. This means that the returns on each deposit are calculated based on the APY the pool had at the moment of staking.
 
 ##### :warning: Warning
@@ -191,11 +191,11 @@ The contract implements an access control system with distinct roles. Functional
   enum AccessTier { USER, ADMIN, OWNER }
   ```
 
-| Name                          | Value / Tier | Description                                                      |
-|:------------------------------|:-------------|:-----------------------------------------------------------------|
-| `AccessTier.USER`             | **0**        | Regular users with basic permissions.                            |
-| `AccessTier.ADMIN`            | **1**        | Administrators with extended privileges for specific functions.  |
-| `AccessTier.OWNER`            | **2**        | The contract owner with full control over all functions.         |
+| Name                          | Value / Tier | Description                                                                                       |
+|:------------------------------|:-------------|:--------------------------------------------------------------------------------------------------|
+| `AccessTier.USER`             | **0**        | Regular users with basic permissions.                                                             |
+| `AccessTier.ADMIN`            | **1**        | Administrators with extended privileges for specific functions (can not stake).                   |
+| `AccessTier.OWNER`            | **2**        | The contract owner with full control over all functions (can not stake).                          |
 
 ---
 ### Administrative Controls
@@ -231,34 +231,38 @@ The `contractOwner` can manage the program's overall functioning or configure st
 ### Data Collection and Retrieval
 The program keeps detailed data of stakers, withdrawers, interest claimers, fund collectors, fund restorers, interest providers, and interest collectors in each pool and provides a set of read functions for easy data retrieval.
 
-| Function | Parameters |
-|----------|------------|
-| `checkAPY` | `uint256 poolID` |
-| `checkClaimableInterest` | `address userAddress` `uint256 poolID` `uint256 depositNumber` `bool withDecimals` |
-| `checkCollectedFundsByAddress` | `address userAddress` `uint256 poolID` |
-| `checkConfirmationCode` | None |
-| `checkDefaultMinimumDeposit` | None |
-| `checkDefaultStakingTarget` | None |
-| `checkDepositCountOfAddress` | `address userAddress` `uint256 poolID` |
-| `checkEndDate` | `uint256 poolID` |
-| `checkIfInterestClaimOpen` | `uint256 poolID` |
-| `checkIfPoolEnded` | `uint256 poolID` |
-| `checkIfStakingOpen` | `uint256 poolID` |
-| `checkIfWithdrawalOpen` | `uint256 poolID` |
-| `checkInterestClaimedByAddress` | `address userAddress` `uint256 poolID` |
-| `checkInterestCollectedByAddress` | `address userAddress` |
-| `checkInterestPool` | None |
-| `checkInterestProvidedByAddress` | `address userAddress` |
-| `checkMinimumDeposit` | `uint256 poolID` |
-| `checkPoolCount` | None |
-| `checkPoolType` | `uint256 poolID` |
-| `checkStakedAmountByAddress` | `address userAddress` `uint256 poolID` |
-| `checkStakingTarget` | `uint256 poolID` |
-| `checkTotalFundCollected` | `uint256 poolID` |
-| `checkTotalInterestClaimed` | `uint256 poolID` |
-| `checkTotalStaked` | `uint256 poolID` |
-| `checkTotalWithdrawn` | `uint256 poolID` |
-| `checkWithdrawnAmountByAddress` | `address userAddress` `uint256 poolID` |
+| Function   | Parameters                                                                                               |
+|------------|----------------------------------------------------------------------------------------------------------|
+| `checkAPY`                       | `uint256 poolID`                                                                   |
+| `checkClaimableInterest`         | `address userAddress` `uint256 poolID` `uint256 depositNumber` `bool withDecimals` |
+| `checkCollectedFundsBy`          | `address userAddress` `uint256 poolID`                                             |
+| `checkConfirmationCode`          | None                                                                               |
+| `checkDailyGeneratedInterest`    | `uint256 poolID`                                                                   |
+| `checkDefaultMinimumDeposit`     | None                                                                               |
+| `checkDefaultStakingTarget`      | None                                                                               |
+| `checkDepositCountOfAddress`     | `address userAddress` `uint256 poolID`                                             |
+| `checkDepositStakedAmount`       | `address userAddress` `uint256 poolID` `uint256 depositNumber`                     |
+| `checkEndDate`                   | `uint256 poolID`                                                                   |
+| `checkIfInterestClaimOpen`       | `uint256 poolID`                                                                   |
+| `checkIfPoolEnded`               | `uint256 poolID`                                                                   |
+| `checkIfStakingOpen`             | `uint256 poolID`                                                                   |
+| `checkIfWithdrawalOpen`          | `uint256 poolID`                                                                   |
+| `checkInterestClaimedBy`         | `address userAddress` `uint256 poolID`                                             |
+| `checkInterestCollectedBy`       | `address userAddress`                                                              |
+| `checkInterestPool`              | None                                                                               |
+| `checkInterestProvidedBy`        | `address userAddress`                                                              |
+| `checkMinimumDeposit`            | `uint256 poolID`                                                                   |
+| `checkPoolCount`                 | None                                                                               |
+| `checkPoolType`                  | `uint256 poolID`                                                                   |
+| `checkStakedAmountBy`            | `address userAddress` `uint256 poolID`                                             |
+| `checkStakingTarget`             | `uint256 poolID`                                                                   |
+| `checkTotalClaimableInterest`    | `uint256 poolID`                                                                   |
+| `checkTotalClaimableInterestBy`  | `address userAddress` `uint256 poolID`                                             |
+| `checkTotalFundCollected`        | `uint256 poolID`                                                                   |
+| `checkTotalInterestClaimed`      | `uint256 poolID`                                                                   |
+| `checkTotalStaked`               | `uint256 poolID`                                                                   |
+| `checkTotalWithdrawn`            | `uint256 poolID`                                                                   |
+| `checkWithdrawnAmountBy`         | `address userAddress` `uint256 poolID`                                             |
 
 ---
 ### Dependencies
