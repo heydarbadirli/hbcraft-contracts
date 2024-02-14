@@ -1,10 +1,14 @@
 <img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="200" height="200"/>
 
 # ERC20 Staking by HB Craft
-![version](https://img.shields.io/badge/version-1.3.0-blue)
+![version](https://img.shields.io/badge/version-1.3.1-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### What's New?
+### Version 1.3.1 - 2024/02/14
+#### FIXED: Read Function BUG
+The `checkDailyGeneratedInterest` function now doesn't consider deposits that have already withdrawn, hence gives more precise calculations on total expected interest to be generated.
+
 ### Version 1.3.0 - 2024/02/13
 #### 1) CHANGED: Decimal Support for All Functions
 All contract functions have been updated to work with decimal values only (token units). This change requires both input arguments to include decimals and returns output values with decimals, aligning with the standards of other blockchain contracts. This adjustment was made to prioritize compliance over simplicity. The update aims to reduce confusion and simplify integration for developers working with multiple libraries.

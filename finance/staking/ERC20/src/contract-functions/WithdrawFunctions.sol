@@ -83,8 +83,8 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
     returns(uint256) {
         uint256 dailyTotalInterestGenerated;
 
-        uint256 userDepositCount;
         address userAddress;
+        uint256 userDepositCount;
 
         for (uint256 stakerNo = 0; stakerNo < stakingPoolList[poolID].stakerAddressList.length; stakerNo++){
             userAddress = stakingPoolList[poolID].stakerAddressList[stakerNo];
@@ -92,7 +92,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
             
             for (uint256 depositNumber = 0; depositNumber < userDepositCount; depositNumber++){
                 TokenDeposit storage targetDeposit = stakingPoolList[poolID].stakerDepositList[userAddress][depositNumber];
-                dailyTotalInterestGenerated += ((targetDeposit.amount * (targetDeposit.APY / 365) / 100)) / (10 ** tokenDecimalCount);
+                if (targetDeposit.withdrawalDate == 0){dailyTotalInterestGenerated += ((targetDeposit.amount * (targetDeposit.APY / 365) / 100)) / (10 ** tokenDecimalCount);}
             }
         }
 
@@ -159,7 +159,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         if (depositWithdrawalDate != 0){
             if (isBatchWithdrawal == false){
                 revert("Deposit already withdrawn");
-            } 
+            }
         } else {
             _claimInterest(poolID, msg.sender, depositNumber);
                 
