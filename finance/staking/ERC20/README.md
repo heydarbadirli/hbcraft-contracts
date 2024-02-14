@@ -4,6 +4,23 @@
 ![version](https://img.shields.io/badge/version-1.3.1-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+- [What's New?](#whats-new)
+    - [Version 1.3.1](#version-131---20240214)
+    - [Version 1.3.0](#version-130---20240213)
+    - [Version 1.2.0](#version-120---20240208)
+    - [Version 1.1.1](#version-111---20240205)
+    - [Version 1.1.0](#version-110---20240202)
+- [Contract Introduction](#contract-introduction)
+    - [Key Features](#key-features)
+    - [Supported Tokens](#supported-tokens)
+    - [User Experience](#user-experience)
+    - [Access Control](#access-control)
+    - [Administrative Controls](#administrative-controls)
+    - [Data Collection and Retrieval](#data-collection-and-retrieval)
+    - [Dependencies](#dependencies)
+    - [License](#license)
+
+---
 ### What's New?
 ### Version 1.3.1 - 2024/02/14
 #### FIXED: Read Function BUG
