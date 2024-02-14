@@ -9,6 +9,7 @@
 #### FIXED: Read Function BUG
 The `checkDailyGeneratedInterest` function now doesn't consider deposits that have already withdrawn, hence gives more precise calculations on total expected interest to be generated.
 
+---
 ### Version 1.3.0 - 2024/02/13
 #### 1) CHANGED: Decimal Support for All Functions
 All contract functions have been updated to work with decimal values only (token units). This change requires both input arguments to include decimals and returns output values with decimals, aligning with the standards of other blockchain contracts. This adjustment was made to prioritize compliance over simplicity. The update aims to reduce confusion and simplify integration for developers working with multiple libraries.
