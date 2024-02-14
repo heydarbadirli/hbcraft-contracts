@@ -167,7 +167,8 @@ With this version, increased withdrawal validation measures are implemented to r
 ### Contract Introduction
 The contract allows to launch a staking program and to create an unlimited number of staking pools inside the program, which can be either locked or flexible. All pools use the designated ERC20 token assigned during program deployment inside the `constructor` function.
 
-#### Key Features
+---
+### Key Features
 **Multiple Staking Pools:**
 - Ability to create numerous locked or flexible staking pools.
 
