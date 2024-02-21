@@ -1,6 +1,6 @@
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 import "../AuxiliaryFunctions.sol";
 
@@ -8,6 +8,23 @@ contract MainManagementScenarios is AuxiliaryFunctions {
     // ======================================
     // =      Program Management Test       =
     // ======================================
+    function test_ProgramManagement_TransferOwnership() external {
+        vm.startPrank(contractAdmin);
+        vm.expectRevert();
+        stakingContract.transferOwnership(userOne);
+        vm.stopPrank();
+
+        vm.startPrank(userOne);
+        vm.expectRevert();
+        stakingContract.transferOwnership(userTwo);
+        vm.stopPrank();
+
+        assertEq(stakingContract.contractOwner(), address(this));
+
+        stakingContract.transferOwnership(userOne);
+        assertEq(stakingContract.contractOwner(), userOne);
+    }
+
     function test_ProgramManagement_AddRemoveAdmin() external {
         assertEq(stakingContract.contractAdmins(contractAdmin), true);
 

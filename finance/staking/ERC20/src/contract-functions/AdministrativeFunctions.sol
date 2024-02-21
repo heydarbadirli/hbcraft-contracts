@@ -2,7 +2,7 @@
 // Copyright 2024 HB Craft.
 
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 
 import "../ComplianceCheck.sol";
@@ -12,6 +12,14 @@ contract AdministrativeFunctions is ComplianceCheck {
     // ======================================
     // =     Program Parameter Setters      =
     // ======================================
+    function transferOwnership(address userAddress) external
+    onlyContractOwner {
+        require(userAddress != msg.sender, "Same with current owner");
+        contractOwner = userAddress;
+
+        emit TransferOwnership(msg.sender, userAddress);
+    }
+
     function addContractAdmin(address userAddress) external
     onlyContractOwner {
         require(userAddress != msg.sender, "Owner can not be an admin");
@@ -73,7 +81,8 @@ contract AdministrativeFunctions is ComplianceCheck {
     // DEV: Adds a pool with custom set properties
     function addStakingPoolCustom(uint256 typeToSet, uint256 stakingTargetToSet, uint256 minimumDepositToSet, bool stakingAvailabilityStatus, uint256 APYToSet) external 
     onlyContractOwner {
-        require(APYToSet != 0, "APY has to be over 0!");
+        if (minimumDepositToSet == 0){revert InvalidArgumentValue("Minimum Deposit", 1);}
+        if (APYToSet == 0){revert InvalidArgumentValue("APY", 1);}
         PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
         _addStakingPool(typeAsPoolType, stakingTargetToSet, minimumDepositToSet, stakingAvailabilityStatus, APYToSet * (10 ** tokenDecimalCount));
     }
@@ -86,7 +95,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     // NOTICE: Sets isInterestClaimOpen true
     function addStakingPoolDefault(uint256 typeToSet, uint256 APYToSet) external
     onlyContractOwner {
-        require(APYToSet != 0, "APY has to be over 0!");
+        if (APYToSet == 0){revert InvalidArgumentValue("APY", 1);}
         PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
         _addStakingPool(typeAsPoolType, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * (10 ** tokenDecimalCount));
     }
@@ -184,6 +193,8 @@ contract AdministrativeFunctions is ComplianceCheck {
     onlyContractOwner
     ifPoolExists(poolID)
     ifPoolEnded(poolID) {
+        if (newAPY == 0){revert InvalidArgumentValue("APY", 1);}
+
         uint256 APYValueToWei = newAPY * (10 ** tokenDecimalCount);
         require(APYValueToWei != stakingPoolList[poolID].APY, "The same as current APY");
 
@@ -229,11 +240,11 @@ contract AdministrativeFunctions is ComplianceCheck {
     ifPoolEnded(poolID)
     enoughFundsAvailable(poolID, tokenAmount) {
         StakingPool storage targetPool = stakingPoolList[poolID];
-        targetPool.fundCollectorList[msg.sender];
-        targetPool.totalList[DataType.FUNDS_COLLECTED];
+        targetPool.fundCollectorList[msg.sender] += tokenAmount;
+        targetPool.totalList[DataType.FUNDS_COLLECTED] += tokenAmount;
 
-        _sendToken(msg.sender, tokenAmount);
         emit CollectFunds(msg.sender, poolID, tokenAmount);
+        _sendToken(msg.sender, tokenAmount);
     }
 
     // DEV: Restores funds collected from the target StakingPool
@@ -248,12 +259,11 @@ contract AdministrativeFunctions is ComplianceCheck {
             revert RestorationExceedsCollected(tokenAmount, remainingFundsToRestore);
         }
 
-        _receiveToken(tokenAmount);
-
         targetPool.fundRestorerList[msg.sender] += tokenAmount;
         targetPool.totalList[DataType.FUNDS_RESTORED] += tokenAmount;
 
         emit RestoreFunds(msg.sender, poolID, tokenAmount);
+        _receiveToken(tokenAmount);
     }
 
     function collectInterestPoolFunds(uint256 tokenAmount) external
@@ -263,18 +273,17 @@ contract AdministrativeFunctions is ComplianceCheck {
         interestCollectorList[msg.sender] += tokenAmount;
         interestPool -= tokenAmount;
 
-        _sendToken(msg.sender, tokenAmount);
         emit CollectInterest(msg.sender, tokenAmount);
+        _sendToken(msg.sender, tokenAmount);
     }
 
     function provideInterest(uint256 tokenAmount) external
     nonReentrant
     onlyAdmins {
-        _receiveToken(tokenAmount);
-
         interestProviderList[msg.sender] += tokenAmount;
         interestPool += tokenAmount;
 
         emit ProvideInterest(msg.sender, tokenAmount);
+        _receiveToken(tokenAmount);
     }
 }

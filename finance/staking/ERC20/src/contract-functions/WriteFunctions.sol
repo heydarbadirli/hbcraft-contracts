@@ -2,7 +2,7 @@
 // Copyright 2024 HB Craft.
 
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 
 import "../ComplianceCheck.sol";
@@ -31,12 +31,10 @@ contract WriteFunctions is ComplianceCheck {
         TokenDeposit[] storage targetDepositList = targetPool.stakerDepositList[userAddress];
 
         if (action == ActionType.STAKING) {
+            if (targetDepositList.length == 0){
+                targetPool.stakerAddressList.push(userAddress);
+            }
             targetDepositList.push(TokenDeposit(block.timestamp, 0, tokenAmount, targetPool.APY, 0));
-
-            targetPool.stakerAddressList.push();
-            uint256 newIndex = targetPool.stakerAddressList.length - 1;
-            targetPool.stakerAddressList[newIndex] = userAddress;
-
             _updateStakerBalance(action, poolID, userAddress, tokenAmount);
         } else if (action == ActionType.WITHDRAWAL) {
             TokenDeposit storage targetDeposit = targetDepositList[depositNumber];

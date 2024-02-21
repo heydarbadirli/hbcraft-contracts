@@ -2,7 +2,7 @@
 // Copyright 2024 HB Craft.
 
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 
 import "../ComplianceCheck.sol";
@@ -119,6 +119,11 @@ contract ReadFunctions is ComplianceCheck {
         return stakingPoolList[poolID].totalList[DataType.FUNDS_COLLECTED];
     }
 
+    function checkTotalFundRestored(uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].totalList[DataType.FUNDS_RESTORED];
+    }
+
 
     // ======================================
     // =    Functoins to check user data    =
@@ -146,6 +151,11 @@ contract ReadFunctions is ComplianceCheck {
     function checkCollectedFundsBy(address userAddress, uint256 poolID) external view
     returns (uint256){
         return stakingPoolList[poolID].fundCollectorList[userAddress];
+    }
+
+    function checkRestoredFundsBy(address userAddress, uint256 poolID) external view
+    returns (uint256){
+        return stakingPoolList[poolID].fundRestorerList[userAddress];
     }
 
     function checkDepositCountOfAddress(address userAddress, uint256 poolID) public view

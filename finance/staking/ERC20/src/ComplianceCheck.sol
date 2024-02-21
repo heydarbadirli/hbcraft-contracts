@@ -2,7 +2,7 @@
 // Copyright 2024 HB Craft.
 
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 
 import "./AccessControl.sol";
@@ -16,6 +16,9 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     // ======================================
     // =              Errors                =
     // ======================================
+    // DEV: Exception raised when 0 is provided as default minimum deposit or pool minimum deposit
+    // DEV: Exception raised when 0 is provided as APY
+    error InvalidArgumentValue(string argument, uint256 minValue);
     // DEV: Exception raised when the stakeToken function called while the isStakingOpen parameter of the pool is false
     // DEV: Exception raised when the withdrawDeposit or withdrawAll function called while the isWithdrawalOpen parameter of the pool is false
     error NotOpen(uint256 poolID, string _action);
@@ -165,6 +168,8 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     // =              Events                =
     // ======================================
     event CreateProgram (string stakingTokenTicker, address stakingTokenAddress, uint256 _defaultStakingTarget, uint256 _defaultMinimumDeposit);
+
+    event TransferOwnership (address from, address to);
 
     event AddContractAdmin (address indexed user);
     event RemoveContractAdmin (address indexed user);

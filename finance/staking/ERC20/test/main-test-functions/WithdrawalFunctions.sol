@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 import "./InterestClaimFunctions.sol";
 
@@ -69,5 +69,22 @@ contract WithdrawalFunctions is InterestClaimFunctions {
 
         uint256 totalWithdrawnAfter = totalWithdrawnBefore + withdrawnByUser;
         assertEq(_getTotalWithdrawn(_poolID), totalWithdrawnAfter);
+    }
+    
+    function test_InterestCheck_DepositWithdrawn() external {
+        _addPool(address(this), false);
+
+        _stakeTokenWithAllowance(userOne, 0, amountToStake);
+
+        _increaseAllowance(address(this), amountToProvide);
+        stakingContract.provideInterest(amountToProvide);
+
+        _withdrawTokenWithTest(userOne, 0, 0, false, true);
+
+        skip(2 days);
+        assertEq(stakingContract.checkClaimableInterestBy(userOne, 0, 0), 0, "no interest 1");
+        assertEq(stakingContract.checkTotalClaimableInterestBy(userOne, 0), 0, "no interest 2");
+        assertEq(stakingContract.checkTotalClaimableInterest(0), 0, "no interest 3");
+        assertEq(stakingContract.checkDailyGeneratedInterest(0), 0, "no interest 4");
     }
 }

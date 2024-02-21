@@ -2,7 +2,7 @@
 // Copyright 2024 HB Craft.
 
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -50,8 +50,8 @@ contract ProgramManager {
     enum PoolType { LOCKED, FLEXIBLE }
 
     // DEV: DataType and PoolDataType are used for cleaner communication among the contract functions
-    enum DataType {STAKED, WITHDREW, INTEREST_CLAIMED, FUNDS_COLLECTED, FUNDS_RESTORED, DEPOSIT_COUNT}
-    enum PoolDataType {TYPE, IS_ENDED, APY, STAKING_TARGET, MINIMUM_DEPOSIT, IS_STAKING_OPEN, IS_WITHDRAWAL_OPEN, IS_INTEREST_CLAIM_OPEN}
+    enum DataType {STAKED, WITHDREW, INTEREST_CLAIMED, FUNDS_COLLECTED, FUNDS_RESTORED}
+    enum PoolDataType {IS_STAKING_OPEN, IS_WITHDRAWAL_OPEN, IS_INTEREST_CLAIM_OPEN}
 
     enum ActionType { STAKING, WITHDRAWAL, INTEREST_CLAIM }
 
@@ -60,15 +60,14 @@ contract ProgramManager {
     // DEV: The endDate is set via endPool function when no more interest is intended to be paid after certain period of time
     // DEV: If the current time has passed the endDate, endDate is used when calculating the interests
     struct StakingPool {
-        PoolType poolType;
         uint256 stakingTarget;
         uint256 minimumDeposit;
+        uint256 APY;
 
         bool isStakingOpen;
         bool isWithdrawalOpen;
         bool isInterestClaimOpen;
-
-        uint256 APY;
+        PoolType poolType;
     
         mapping (address => uint256) stakerList;
         address[] stakerAddressList;

@@ -17,7 +17,7 @@ SPDX-License-Identifier: Apache-2.0
 */
 
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 
 import "./contract-functions/AdministrativeFunctions.sol";
@@ -27,6 +27,8 @@ import "./contract-functions/WithdrawFunctions.sol";
 
 contract ERC20Staking is AdministrativeFunctions, StakingFunctions, WithdrawFunctions {
     constructor(address tokenAddress, uint256 _defaultStakingTarget, uint256 _defaultMinimumDeposit, uint256 _confirmationCode){
+        if (_defaultMinimumDeposit == 0){revert InvalidArgumentValue("Minimum Deposit", 1);}
+
         contractOwner = msg.sender;
 
         stakingToken = IERC20Metadata(tokenAddress);

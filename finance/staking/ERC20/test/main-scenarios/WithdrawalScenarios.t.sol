@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 import "../main-test-functions/WithdrawalFunctions.sol";
 
@@ -155,5 +155,40 @@ contract WithdrawalScenarious is WithdrawalFunctions {
         _endPool(address(this), 1);
         _claimInterestWithTest(userOne, 1, 0, false);
         assertEq(stakingContract.checkClaimableInterestBy(userOne, 1, 0), 0);
+    }
+
+    function test_InterestClaim_DepositWithdrawn() external {
+        _addPool(address(this), false);
+
+        vm.warp(1706809873);
+        _stakeTokenWithAllowance(userOne, 0, amountToStake);
+
+        _increaseAllowance(address(this), amountToProvide);
+        stakingContract.provideInterest(amountToProvide);
+
+        vm.warp(1707000000);
+        console.log(stakingContract.checkClaimableInterestBy(userOne, 0, 0));
+        _withdrawTokenWithTest(userOne, 0, 0, false, true);
+        assertEq(stakingContract.checkClaimableInterestBy(userOne, 0, 0), 0, "no interest");
+        console.log(stakingContract.checkClaimableInterestBy(userOne, 0, 0));
+
+        vm.warp(1708000000);
+        console.log(stakingContract.checkClaimableInterestBy(userOne, 0, 0));
+        assertEq(stakingContract.checkClaimableInterestBy(userOne, 0, 0), 0, "no interest");
+        _claimInterestWithTest(userOne, 0, 0, true);
+    }
+
+    function test_WithdrawAll_AfterWithdrawal() external {
+        _addPool(address(this), false);
+
+        _stakeTokenWithAllowance(userOne, 0, amountToStake);
+        _stakeTokenWithAllowance(userOne, 0, amountToStake);
+
+        _withdrawTokenWithTest(userOne, 0, 1, false, true);
+        console.log(stakingContract.checkStakedAmountBy(userOne, 0));
+        console.log(stakingContract.checkWithdrawnAmountBy(userOne, 0));
+        console.log(stakingContract.checkTotalStaked(0));
+//        _withdrawTokenWithTest(userOne, 0, 0, false, true);
+        _withdrawTokenWithTest(userOne, 0, 9999, false, true);
     }
 }
