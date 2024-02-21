@@ -32,17 +32,21 @@ contract TestSetUp is Test {
     address[] addressList = [userOne, userTwo, userThree];
     uint256 amountToProvide = 1000 * myTokenDecimals;
     uint256 amountToStake = 10 * myTokenDecimals;
- 
+
     uint256 tokenToDistribute = 1000 * myTokenDecimals;
 
-    enum PMActions {PAUSE, RESUME}
+    enum PMActions {
+        PAUSE,
+        RESUME
+    }
 
     function setUp() external {
         myToken = new MockToken(myTokenDecimal);
-        stakingContract = new ERC20Staking(address(myToken), _defaultStakingTarget, _defaultMinimumDeposit, _confirmationCode);
+        stakingContract =
+            new ERC20Staking(address(myToken), _defaultStakingTarget, _defaultMinimumDeposit, _confirmationCode);
         stakingContract.addContractAdmin(contractAdmin);
 
-        for(uint256 userNo = 0; userNo < addressList.length; userNo++){
+        for (uint256 userNo = 0; userNo < addressList.length; userNo++) {
             myToken.transfer(addressList[userNo], tokenToDistribute);
         }
 

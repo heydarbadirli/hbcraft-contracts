@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
-
 pragma solidity 0.8.20;
-
 
 import "../ComplianceCheck.sol";
 
-
 contract WriteFunctions is ComplianceCheck {
-    function _updateStakerBalance(ActionType action, uint256 poolID, address userAddress, uint256 tokenAmount) private {
+    function _updateStakerBalance(ActionType action, uint256 poolID, address userAddress, uint256 tokenAmount)
+        private
+    {
         StakingPool storage targetPool = stakingPoolList[poolID];
         if (action == ActionType.STAKING) {
             targetPool.stakerList[userAddress] += tokenAmount;
@@ -26,12 +25,18 @@ contract WriteFunctions is ComplianceCheck {
         }
     }
 
-    function _updatePoolData(ActionType action, uint256 poolID, address userAddress, uint256 depositNumber, uint256 tokenAmount) internal {
+    function _updatePoolData(
+        ActionType action,
+        uint256 poolID,
+        address userAddress,
+        uint256 depositNumber,
+        uint256 tokenAmount
+    ) internal {
         StakingPool storage targetPool = stakingPoolList[poolID];
         TokenDeposit[] storage targetDepositList = targetPool.stakerDepositList[userAddress];
 
         if (action == ActionType.STAKING) {
-            if (targetDepositList.length == 0){
+            if (targetDepositList.length == 0) {
                 targetPool.stakerAddressList.push(userAddress);
             }
             targetDepositList.push(TokenDeposit(block.timestamp, 0, tokenAmount, targetPool.APY, 0));

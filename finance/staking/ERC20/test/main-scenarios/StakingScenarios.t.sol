@@ -29,7 +29,7 @@ contract StakingScenarious is AuxiliaryFunctions {
         _addPool(address(this), true);
 
         _increaseAllowance(userOne, 1);
-        _stakeTokenWithTest(userOne, 0,  1, true);
+        _stakeTokenWithTest(userOne, 0, 1, true);
     }
 
     function test_Staking_AmountExceedsTarget() external {

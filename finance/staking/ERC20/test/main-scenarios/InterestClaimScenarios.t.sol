@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 import "../main-test-functions/InterestClaimFunctions.sol";
 
 contract InterestClaimScenarios is InterestClaimFunctions {
-
     function test_InterestClaim() external {
         _addPool(address(this), true);
 
@@ -22,7 +21,7 @@ contract InterestClaimScenarios is InterestClaimFunctions {
         _addPool(address(this), true);
 
         vm.warp(1706809873);
-        for(uint256 times = 0; times < 3; times++){
+        for (uint256 times = 0; times < 3; times++) {
             _stakeTokenWithAllowance(userOne, 0, amountToStake);
         }
 
@@ -76,6 +75,7 @@ contract InterestClaimScenarios is InterestClaimFunctions {
         skip(2 days);
         uint256 expectedInterests = stakingContract.checkTotalClaimableInterestBy(userOne, 0);
         assertEq(stakingContract.checkTotalClaimableInterest(0), expectedInterests, "wrong interest 1");
-        assertEq(stakingContract.checkDailyGeneratedInterest(0), expectedInterests/2, "wrong interest 2");
+        assertEq(stakingContract.checkGeneratedInterestDailyTotal(0, true), expectedInterests / 2, "wrong interest 2");
+        assertEq(stakingContract.checkGeneratedInterestDailyTotal(0, false), expectedInterests / 2, "wrong interest 3");
     }
 }

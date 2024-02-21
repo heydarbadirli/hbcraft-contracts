@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
@@ -33,7 +32,7 @@ contract MainManagementScenarios is AuxiliaryFunctions {
     }
 
     function test_ProgramManagement_PoolCount(uint8 x) external {
-        for(uint8 No; No < x; No++){
+        for (uint8 No; No < x; No++) {
             _addPool(address(this), true);
         }
 
@@ -42,18 +41,18 @@ contract MainManagementScenarios is AuxiliaryFunctions {
 
     function test_ProgramManagement_AddEndPool() external {
         vm.warp(1706809873);
-        for(uint8 No = 0; No < 10; No++){
+        for (uint8 No = 0; No < 10; No++) {
             _addPool(address(this), true);
         }
 
         vm.warp(1738401000);
-        for(uint8 No = 0; No < 10; No++){
-            if(No <= 4 || No >= 7){_endPool(address(this), No);}
+        for (uint8 No = 0; No < 10; No++) {
+            if (No <= 4 || No >= 7) _endPool(address(this), No);
         }
 
         vm.warp(1738402000);
-        for(uint8 No; No < 10; No++){
-            if (No <= 4 || No >= 7){
+        for (uint8 No; No < 10; No++) {
+            if (No <= 4 || No >= 7) {
                 assertTrue(stakingContract.checkIfPoolEnded(No));
                 assertFalse(stakingContract.checkIfStakingOpen(No));
                 assertTrue(stakingContract.checkIfWithdrawalOpen(No));
@@ -89,19 +88,20 @@ contract MainManagementScenarios is AuxiliaryFunctions {
 
         vm.startPrank(contractAdmin);
         stakingContract.provideInterest(amountToProvide);
-        stakingContract.collectInterestPoolFunds(amountToProvide);
-        vm.stopPrank();
-    }
-
-    function test_InterestManagement_NotEnoughFundsInTheInterestPool() external {
-        _increaseAllowance(contractAdmin, amountToProvide);
-        
-        vm.startPrank(contractAdmin);
-        stakingContract.provideInterest(amountToProvide);
-        stakingContract.collectInterestPoolFunds(amountToProvide);
-        
+        assertEq(stakingContract.checkInterestProvidedBy(contractAdmin), amountToProvide);
         vm.expectRevert();
         stakingContract.collectInterestPoolFunds(amountToProvide);
         vm.stopPrank();
+        stakingContract.collectInterestPoolFunds(amountToProvide);
+    }
+
+    function test_InterestManagement_NotEnoughFundsInTheInterestPool() external {
+        _increaseAllowance(address(this), amountToProvide);
+
+        stakingContract.provideInterest(amountToProvide);
+        stakingContract.collectInterestPoolFunds(amountToProvide);
+
+        vm.expectRevert();
+        stakingContract.collectInterestPoolFunds(amountToProvide);
     }
 }

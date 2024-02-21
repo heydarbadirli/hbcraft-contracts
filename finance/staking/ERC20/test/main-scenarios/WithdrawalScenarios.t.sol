@@ -26,16 +26,15 @@ contract WithdrawalScenarious is WithdrawalFunctions {
         _tryMultiUserMultiStake(howManyTimes, false);
         _tryMultiUserMultiStake(howManyTimes, false);
 
-
         _increaseAllowance(address(this), amountToProvide);
         stakingContract.provideInterest(amountToProvide);
 
         vm.warp(1738401000);
 
-        for(uint256 No; No < howManyTimes; No++){
+        for (uint256 No; No < howManyTimes; No++) {
             console.log(stakingContract.checkTotalClaimableInterest(No));
-            for(uint256 userNo = 0; userNo < addressList.length; userNo++){
-                for(uint256 timesStaked; timesStaked < 3; timesStaked++){
+            for (uint256 userNo = 0; userNo < addressList.length; userNo++) {
+                for (uint256 timesStaked; timesStaked < 3; timesStaked++) {
                     _withdrawTokenWithTest(addressList[userNo], No, timesStaked, false, true);
                 }
             }
@@ -49,7 +48,7 @@ contract WithdrawalScenarious is WithdrawalFunctions {
         _stakeTokenWithAllowance(userOne, 0, amountToStake);
         _withdrawTokenWithTest(userOne, 0, 0, true, true);
     }
-    
+
     function test_Withdrawal_NotEnoughFundsInThePool() external {
         _addPool(address(this), false);
 
@@ -97,7 +96,7 @@ contract WithdrawalScenarious is WithdrawalFunctions {
         _addPool(address(this), false);
 
         vm.warp(1706809873);
-        for(uint256 times = 0; times < 3; times++){
+        for (uint256 times = 0; times < 3; times++) {
             _stakeTokenWithAllowance(userOne, 0, 100 * myTokenDecimals);
         }
 
@@ -167,13 +166,10 @@ contract WithdrawalScenarious is WithdrawalFunctions {
         stakingContract.provideInterest(amountToProvide);
 
         vm.warp(1707000000);
-        console.log(stakingContract.checkClaimableInterestBy(userOne, 0, 0));
         _withdrawTokenWithTest(userOne, 0, 0, false, true);
         assertEq(stakingContract.checkClaimableInterestBy(userOne, 0, 0), 0, "no interest");
-        console.log(stakingContract.checkClaimableInterestBy(userOne, 0, 0));
 
         vm.warp(1708000000);
-        console.log(stakingContract.checkClaimableInterestBy(userOne, 0, 0));
         assertEq(stakingContract.checkClaimableInterestBy(userOne, 0, 0), 0, "no interest");
         _claimInterestWithTest(userOne, 0, 0, true);
     }
@@ -188,7 +184,7 @@ contract WithdrawalScenarious is WithdrawalFunctions {
         console.log(stakingContract.checkStakedAmountBy(userOne, 0));
         console.log(stakingContract.checkWithdrawnAmountBy(userOne, 0));
         console.log(stakingContract.checkTotalStaked(0));
-//        _withdrawTokenWithTest(userOne, 0, 0, false, true);
+        //        _withdrawTokenWithTest(userOne, 0, 0, false, true);
         _withdrawTokenWithTest(userOne, 0, 9999, false, true);
     }
 }

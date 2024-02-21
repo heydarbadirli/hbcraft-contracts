@@ -1,10 +1,11 @@
 <img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="200" height="200"/>
 
 # ERC20 Staking by HB Craft
-![version](https://img.shields.io/badge/version-1.3.1-blue)
+![version](https://img.shields.io/badge/version-1.4.0-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 - [What's New?](#whats-new)
+    - [Version 1.4.0](#version-140---20240221)
     - [Version 1.3.1](#version-131---20240214)
     - [Version 1.3.0](#version-130---20240213)
     - [Version 1.2.0](#version-120---20240208)
@@ -22,6 +23,45 @@
 
 ---
 ### What's New?
+### Version 1.4.0 - 2024/02/21
+#### 1) FIXED: Interest Calculation on Withdrawn Deposits
+The issue with withdrawn deposits still generating interest has been addressed. Interest calculation methods are fixed to return accurate values for withdrawn deposits. Now, a check ensures that only active deposits generate interest, preventing the interest pool from being depleted.
+
+####  2) FIXED: State Update in `collectFunds` Function
+The `collectFunds` function has been corrected to properly update the `totalList[DataType.FUNDS_COLLECTED]`
+
+####  3) FIXED: `withdrawAll` Function Behavior
+The function has been corrected to prevent failure when the last deposit is already withdrawn by relocating the modifiers.
+
+####  4) ADDED: `InvalidArgumentValueCheck` error
+Introduced to prevent setting default/pool minimum deposit and APY values to 0.
+
+####  5) ADDED: `transferOwnership` Function
+Made contract ownership transferable.
+
+####  6) CHANGED: contractAdmin Privileges
+Admin privileges are narrowed down to only restoring funds and providing interest to enhance security. This decision addresses the risk of a single malicious admin or compromised private key causing significant losses. Admin privileges might be increased within future versions with a multi-sig solution.
+
+####  7) REMOVED: Some Read Functions
+`checkCollectedFundsBy` and `checkInterestCollectedBy` functions are removed since only contractOwner can perform those actions in this version.
+
+####  8) REMOVED: `userOnly` Modifier
+The USER role is removed for being ineffective. It was initially intended to allow only users to stake tokens, excluding contract owner and admins. However, owner and admins could use alternate addresses for staking.
+
+####  9) CHANGED: `checkDailyGeneratedInterest` Function
+- Renamed to `checkGeneratedInterestDailyTotal`
+- The `ifPrecise` argument is introduced to get around the error in passing the block limit after a certain point.
+- If `true`, the function iterates over each staker's deposits to calculate the total daily interest.
+- If `false`, it uses a simplified calculation based on the total staked amount and the pool's APY.
+
+####  10) ADDED:  New Read Functions
+- **`checkTotalClaimableInterestBy`**
+- **`checkGeneratedInterestLastDayFor`**
+
+####  11) IMPROVED: Gas Usage
+Made several optimizations for gas usage.
+
+---
 ### Version 1.3.1 - 2024/02/14
 #### FIXED: Read Function BUG
 The `checkDailyGeneratedInterest` function now doesn't consider deposits that have already withdrawn, hence gives more precise calculations on total expected interest to be generated.
@@ -37,7 +77,7 @@ All contract functions have been updated to work with decimal values only (token
 - **`checkTotalClaimableInterest`:** Returns the total interest accrued and claimable by all users in a pool, aiding in the management of interest payouts and avoiding errors related to insufficient funds in the interest pool beforehand.
 - **`checkDailyGeneratedInterest`:** Calculates and returns the total expected interest to be generated in a pool in a day based on the current staked token amount, facilitating better planning of interest allocations.
 
-#### 3) ADDED: onlyUser Modifier
+#### 3) ADDED: `onlyUser` Modifier
 A new modifier has been implemented to restrict staking actions to users only, excluding `contractOwner` and `contractAdmin`s. This addition closes potential loopholes that could allow for the cyclic exploitation of fund collection and staking processes.
 
 ---
@@ -127,7 +167,7 @@ With this update, when users initiate a deposit withdrawal, the program also aut
 
 ---
 ### Version 1.1.0 - 2024/02/02
-#### 1) ADDED: Foundry integration
+#### 1) ADDED: Foundry Integration
 The integration is introduced for seamless smart contract deployment. Now, deploying your contract is as straightforward as running the following command:
 
   ```bash
@@ -222,16 +262,16 @@ The contract implements an access control system with distinct roles. Functional
 
 ---
 ### Administrative Controls
-The `contractOwner` can manage the program's overall functioning or configure staking pool properties individually. The `contractOwner` has the ability to assign `contractAdmin`s, and they are also authorized to adjust individual pool parameters like pool status. Some functions are available only to the contract owner to manage the program easily in regular conditions or emergencies.
+The `contractOwner` can manage the program's overall functioning or configure staking pool properties individually. The `contractOwner` has the ability to assign `contractAdmin`s, and they are also authorized to partially participate in the program management. Most functions are available only to the contract owner.
 
 | Function                          | Parameters                                                                                                     | Access Tier      | Description                                                                                                  |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------|------------------|--------------------------------------------------------------------------------------------------------------|
 | `addContractAdmin`                | `address userAddress`                                                                                           | `onlyContractOwner` | Adds a new contract admin.                                                                           |
 | `addStakingPoolDefault`           | `uint256 typeToSet` `uint256 APYToSet`                                                                           | `onlyContractOwner` | Adds a new staking pool with default settings.                                                                       |
 | `addStakingPoolCustom`           | `uint256 typeToSet` `uint256 stakingTargetToSet` `uint256 minimumDepositToSet` `bool stakingAvailabilityStatus` `uint256 APYToSet`                                                                           | `onlyContractOwner` | Adds a new staking pool with custom properties.                                                                       |
-| `changePoolAvailabilityStatus`    | `uint256 poolID` `uint256 parameterToChange` `bool valueToAssign`                                                 | `onlyAdmins`        | Modifies availability status of a staking pool.                                                                     |
-| `collectFunds`                    | `uint256 poolID` `uint256 tokenAmount`                                                                           | `onlyAdmins`        | Collects staked funds from a staking pool.                                                                           |
-| `collectInterestPoolFunds`        | `uint256 tokenAmount`                                                                                           | `onlyAdmins`        | Collects funds from the interest pool.                                                                       |
+| `changePoolAvailabilityStatus`    | `uint256 poolID` `uint256 parameterToChange` `bool valueToAssign`                                                 | `onlyContractOwner`        | Modifies availability status of a staking pool.                                                                     |
+| `collectFunds`                    | `uint256 poolID` `uint256 tokenAmount`                                                                           | `onlyContractOwner`        | Collects staked funds from a staking pool.                                                                           |
+| `collectInterestPoolFunds`        | `uint256 tokenAmount`                                                                                           | `onlyContractOwner`        | Collects funds from the interest pool.                                                                       |
 | `endStakingPool`                  | `uint256 poolID `uint256 _confirmationCode`                                                                     | `onlyContractOwner` | Ends a specified staking pool.                                                                               |
 | `pauseProgram`                    | None                                                                                                            | `onlyContractOwner` | Closes staking, withdrawal and interest claim for all the pools.                                                                               |
 | `provideInterest`                 | `uint256 tokenAmount`                                                                                           | `onlyAdmins`        | Adds funds to the interest pool.                                                                             |
@@ -254,42 +294,44 @@ The `contractOwner` can manage the program's overall functioning or configure st
 ### Data Collection and Retrieval
 The program keeps detailed data of stakers, withdrawers, interest claimers, fund collectors, fund restorers, interest providers, and interest collectors in each pool and provides a set of read functions for easy data retrieval.
 
-| Function   | Parameters                                                                                               |
-|------------|----------------------------------------------------------------------------------------------------------|
-| `checkAPY`                       | `uint256 poolID`                                                                   |
-| `checkClaimableInterest`         | `address userAddress` `uint256 poolID` `uint256 depositNumber` `bool withDecimals` |
-| `checkCollectedFundsBy`          | `address userAddress` `uint256 poolID`                                             |
-| `checkConfirmationCode`          | None                                                                               |
-| `checkDailyGeneratedInterest`    | `uint256 poolID`                                                                   |
-| `checkDefaultMinimumDeposit`     | None                                                                               |
-| `checkDefaultStakingTarget`      | None                                                                               |
-| `checkDepositCountOfAddress`     | `address userAddress` `uint256 poolID`                                             |
-| `checkDepositStakedAmount`       | `address userAddress` `uint256 poolID` `uint256 depositNumber`                     |
-| `checkEndDate`                   | `uint256 poolID`                                                                   |
-| `checkIfInterestClaimOpen`       | `uint256 poolID`                                                                   |
-| `checkIfPoolEnded`               | `uint256 poolID`                                                                   |
-| `checkIfStakingOpen`             | `uint256 poolID`                                                                   |
-| `checkIfWithdrawalOpen`          | `uint256 poolID`                                                                   |
-| `checkInterestClaimedBy`         | `address userAddress` `uint256 poolID`                                             |
-| `checkInterestCollectedBy`       | `address userAddress`                                                              |
-| `checkInterestPool`              | None                                                                               |
-| `checkInterestProvidedBy`        | `address userAddress`                                                              |
-| `checkMinimumDeposit`            | `uint256 poolID`                                                                   |
-| `checkPoolCount`                 | None                                                                               |
-| `checkPoolType`                  | `uint256 poolID`                                                                   |
-| `checkStakedAmountBy`            | `address userAddress` `uint256 poolID`                                             |
-| `checkStakingTarget`             | `uint256 poolID`                                                                   |
-| `checkTotalClaimableInterest`    | `uint256 poolID`                                                                   |
-| `checkTotalClaimableInterestBy`  | `address userAddress` `uint256 poolID`                                             |
-| `checkTotalFundCollected`        | `uint256 poolID`                                                                   |
-| `checkTotalInterestClaimed`      | `uint256 poolID`                                                                   |
-| `checkTotalStaked`               | `uint256 poolID`                                                                   |
-| `checkTotalWithdrawn`            | `uint256 poolID`                                                                   |
-| `checkWithdrawnAmountBy`         | `address userAddress` `uint256 poolID`                                             |
+| Function   | Parameters                                                                                                 |
+|------------|------------------------------------------------------------------------------------------------------------|
+| `checkAPY`                         | `uint256 poolID`                                                                   |
+| `checkClaimableInterestBy`         | `address userAddress` `uint256 poolID` `uint256 depositNumber` `bool withDecimals` |
+| `checkConfirmationCode`            | None                                                                               |
+| `checkDailyGeneratedInterest`      | `uint256 poolID`                                                                   |
+| `checkDefaultMinimumDeposit`       | None                                                                               |
+| `checkDefaultStakingTarget`        | None                                                                               |
+| `checkDepositCountOfAddress`       | `address userAddress` `uint256 poolID`                                             |
+| `checkDepositStakedAmount`         | `address userAddress` `uint256 poolID` `uint256 depositNumber`                     |
+| `checkEndDate`                     | `uint256 poolID`                                                                   |
+| `checkGeneratedInterestDailyTotal` | `uint256 poolID` `ifPrecise`                                                       |
+| `checkGeneratedInterestLastDayFor` | `address userAddress` `uint256 poolID`                                             |
+| `checkIfInterestClaimOpen`         | `uint256 poolID`                                                                   |
+| `checkIfPoolEnded`                 | `uint256 poolID`                                                                   |
+| `checkIfStakingOpen`               | `uint256 poolID`                                                                   |
+| `checkIfWithdrawalOpen`            | `uint256 poolID`                                                                   |
+| `checkInterestClaimedBy`           | `address userAddress` `uint256 poolID`                                             |
+| `checkInterestPool`                | None                                                                               |
+| `checkInterestProvidedBy`          | `address userAddress`                                                              |
+| `checkMinimumDeposit`              | `uint256 poolID`                                                                   |
+| `checkPoolCount`                   | None                                                                               |
+| `checkPoolType`                    | `uint256 poolID`                                                                   |
+| `checkRestoredFundsBy`             | `address userAddress` `uint256 poolID`                                             |
+| `checkStakedAmountBy`              | `address userAddress` `uint256 poolID`                                             |
+| `checkStakingTarget`               | `uint256 poolID`                                                                   |
+| `checkTotalClaimableInterest`      | `uint256 poolID`                                                                   |
+| `checkTotalClaimableInterestBy`    | `address userAddress` `uint256 poolID`                                             |
+| `checkTotalFundCollected`          | `uint256 poolID`                                                                   |
+| `checkTotalFundRestored`           | `uint256 poolID`                                                                   |
+| `checkTotalInterestClaimed`        | `uint256 poolID`                                                                   |
+| `checkTotalStaked`                 | `uint256 poolID`                                                                   |
+| `checkTotalWithdrawn`              | `uint256 poolID`                                                                   |
+| `checkWithdrawnAmountBy`           | `address userAddress` `uint256 poolID`                                             |
 
 ---
 ### Dependencies
-This project uses the Foundry framework with the OpenZeppelin contracts for enhanced security and standardized features. You need to install necessary dependencies.
+This project uses the Foundry framework with the OpenZeppelin contracts (v5.0.0) for enhanced security and standardized features. You need to install necessary dependencies.
 
 You can install the OpenZeppelin contracts by running:
 

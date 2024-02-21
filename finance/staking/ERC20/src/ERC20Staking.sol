@@ -16,29 +16,34 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 */
 
-
 pragma solidity 0.8.20;
-
 
 import "./contract-functions/AdministrativeFunctions.sol";
 import "./contract-functions/StakingFunctions.sol";
 import "./contract-functions/WithdrawFunctions.sol";
 
-
+/// @title ERC20 Staking
+/// @author Heydar Badirli
 contract ERC20Staking is AdministrativeFunctions, StakingFunctions, WithdrawFunctions {
-    constructor(address tokenAddress, uint256 _defaultStakingTarget, uint256 _defaultMinimumDeposit, uint256 _confirmationCode){
-        if (_defaultMinimumDeposit == 0){revert InvalidArgumentValue("Minimum Deposit", 1);}
+    constructor(
+        address tokenAddress,
+        uint256 _defaultStakingTarget,
+        uint256 _defaultMinimumDeposit,
+        uint256 _confirmationCode
+    ) {
+        if (_defaultMinimumDeposit == 0) revert InvalidArgumentValue("Minimum Deposit", 1);
 
         contractOwner = msg.sender;
 
         stakingToken = IERC20Metadata(tokenAddress);
-        tokenDecimalCount = stakingToken.decimals();
+        stakingTokenDecimalCount = stakingToken.decimals();
+        stakingTokenDecimals = 10 ** stakingTokenDecimalCount;
 
         defaultStakingTarget = _defaultStakingTarget;
         defaultMinimumDeposit = _defaultMinimumDeposit;
 
         confirmationCode = _confirmationCode;
 
-        emit CreateProgram(stakingToken.symbol(), tokenAddress, _defaultStakingTarget, _defaultMinimumDeposit); 
+        emit CreateProgram(stakingToken.symbol(), tokenAddress, _defaultStakingTarget, _defaultMinimumDeposit);
     }
 }
