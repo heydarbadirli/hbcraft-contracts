@@ -251,14 +251,13 @@ The contract implements an access control system with distinct roles. Functional
 
 - **Enum `AccessTier`:** Defines the different access levels within the contract.
   ```solidity
-  enum AccessTier { USER, ADMIN, OWNER }
+  enum AccessTier { ADMIN, OWNER }
   ```
 
 | Name                          | Value / Tier | Description                                                                                       |
 |:------------------------------|:-------------|:--------------------------------------------------------------------------------------------------|
-| `AccessTier.USER`             | **0**        | Regular users with basic permissions.                                                             |
-| `AccessTier.ADMIN`            | **1**        | Administrators with extended privileges for specific functions (can not stake).                   |
-| `AccessTier.OWNER`            | **2**        | The contract owner with full control over all functions (can not stake).                          |
+| `AccessTier.ADMIN`            | **1**        | Administrators with extended privileges for specific functions.                                   |
+| `AccessTier.OWNER`            | **2**        | The contract owner with full control over all functions.                                          |
 
 ---
 ### Administrative Controls
