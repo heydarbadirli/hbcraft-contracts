@@ -61,7 +61,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
     }
 
     function _checkClaimableInterestBy(address userAddress, uint256 poolID, uint256 depositNumber)
-        public
+        private
         view
         returns (uint256)
     {
@@ -69,7 +69,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
     }
 
     function checkClaimableInterestBy(address userAddress, uint256 poolID, uint256 depositNumber)
-        public
+        external
         view
         ifPoolExists(poolID)
         returns (uint256)
