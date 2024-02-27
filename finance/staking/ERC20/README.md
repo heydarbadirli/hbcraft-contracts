@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 - [What's New?](#whats-new)
-    - [Version 1.4.0](#version-141---20240227)
+    - [Version 1.4.1](#version-141---20240227)
     - [Version 1.4.0](#version-140---20240221)
     - [Version 1.3.1](#version-131---20240214)
     - [Version 1.3.0](#version-130---20240213)
