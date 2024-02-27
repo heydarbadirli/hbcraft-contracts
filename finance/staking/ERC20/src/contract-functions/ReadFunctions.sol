@@ -49,7 +49,7 @@ contract ReadFunctions is ComplianceCheck {
     }
 
     function checkAPY(uint256 poolID) external view ifPoolExists(poolID) returns (uint256) {
-        return stakingPoolList[poolID].APY / stakingTokenDecimals;
+        return stakingPoolList[poolID].APY / fixedPointPrecision;
     }
 
     /// @dev Returns timestamp

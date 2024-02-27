@@ -1,10 +1,11 @@
 <img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="200" height="200"/>
 
 # ERC20 Staking by HB Craft
-![version](https://img.shields.io/badge/version-1.4.0-blue)
+![version](https://img.shields.io/badge/version-1.4.1-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 - [What's New?](#whats-new)
+    - [Version 1.4.0](#version-141---20240227)
     - [Version 1.4.0](#version-140---20240221)
     - [Version 1.3.1](#version-131---20240214)
     - [Version 1.3.0](#version-130---20240213)
@@ -23,6 +24,17 @@
 
 ---
 ### What's New?
+### Version 1.4.1 - 2024/02/27
+#### 1) ADDED: Zero Address Check
+The check is added to the `transferOwnership` function to prevent accidentally losing control of the contract by setting the owner to an unowned address.
+
+####  2) ADDED: `DepositDoesNotExist` error
+Introduced to raise a custom error in such case.
+
+####  3) IMPROVED: Gas Usage
+Made several optimizations for gas usage.
+
+---
 ### Version 1.4.0 - 2024/02/21
 #### 1) FIXED: Interest Calculation on Withdrawn Deposits
 The issue with withdrawn deposits still generating interest has been addressed. Interest calculation methods are fixed to return accurate values for withdrawn deposits. Now, a check ensures that only active deposits generate interest, preventing the interest pool from being depleted.
@@ -39,7 +51,7 @@ Introduced to prevent setting default/pool minimum deposit and APY values to 0.
 ####  5) ADDED: `transferOwnership` Function
 Made contract ownership transferable.
 
-####  6) CHANGED: contractAdmin Privileges
+####  6) CHANGED: `contractAdmin` Privileges
 Admin privileges are narrowed down to only restoring funds and providing interest to enhance security. This decision addresses the risk of a single malicious admin or compromised private key causing significant losses. Admin privileges might be increased within future versions with a multi-sig solution.
 
 ####  7) REMOVED: Some Read Functions
@@ -330,12 +342,12 @@ The program keeps detailed data of stakers, withdrawers, interest claimers, fund
 
 ---
 ### Dependencies
-This project uses the Foundry framework with the OpenZeppelin contracts (v5.0.0) for enhanced security and standardized features. You need to install necessary dependencies.
+This project uses the Foundry framework with the OpenZeppelin contracts (v5.0.1) for enhanced security and standardized features. You need to install necessary dependencies.
 
 You can install the OpenZeppelin contracts by running:
 
 ```bash
-$ forge install OpenZeppelin/openzeppelin-contracts
+$ forge install --no-commit OpenZeppelin/openzeppelin-contracts@v5.0.1
 ```
 
 ---

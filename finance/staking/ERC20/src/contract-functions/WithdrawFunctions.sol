@@ -55,8 +55,8 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         depositAmount = deposit.amount;
         interestAlreadyClaimed = deposit.claimedInterest;
 
-        claimableInterest = (((depositAmount * ((depositAPY / 365) * daysPassed) / 100)) / stakingTokenDecimals)
-            - interestAlreadyClaimed;
+        claimableInterest =
+            (((depositAmount * ((depositAPY / 365) * daysPassed) / 100)) / fixedPointPrecision) - interestAlreadyClaimed;
         return claimableInterest;
     }
 
@@ -115,7 +115,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
                 targetDeposit.withdrawalDate == 0
                     && (((block.timestamp - targetDeposit.stakingDate) / 60 / 60 / 24) >= 1)
             ) {
-                totalLastDayGenerated += (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / stakingTokenDecimals;
+                totalLastDayGenerated += (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / fixedPointPrecision;
             }
         }
 
@@ -143,7 +143,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
                         stakingPoolList[poolID].stakerDepositList[userAddress][depositNumber];
                     if (targetDeposit.withdrawalDate == 0) {
                         dailyTotalInterestGenerated +=
-                            (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / stakingTokenDecimals;
+                            (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / fixedPointPrecision;
                     }
                 }
             }
@@ -151,7 +151,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
             StakingPool storage targetStakingPool = stakingPoolList[poolID];
             dailyTotalInterestGenerated = (
                 targetStakingPool.totalList[DataType.STAKED] * (targetStakingPool.APY / 365) / 100
-            ) / stakingTokenDecimals;
+            ) / fixedPointPrecision;
         }
 
         return dailyTotalInterestGenerated;
@@ -245,7 +245,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         external
         nonReentrant
         ifPoolExists(poolID)
-        sufficientBalance(poolID)
+        ifDepositExists(poolID, depositNumber)
         enoughFundsAvailable(poolID, stakingPoolList[poolID].stakerDepositList[msg.sender][depositNumber].amount)
     {
         _withdrawDeposit(poolID, depositNumber, false);

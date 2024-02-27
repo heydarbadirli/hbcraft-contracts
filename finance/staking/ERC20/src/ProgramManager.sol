@@ -11,7 +11,7 @@ contract ProgramManager {
     // ======================================
     IERC20Metadata public stakingToken;
     uint256 public stakingTokenDecimalCount;
-    uint256 internal stakingTokenDecimals;
+    uint256 internal constant fixedPointPrecision = 10 ** 18;
 
     /// @notice Default value to set the stakingTarget property for the new StakingPool if not specified
     uint256 internal defaultStakingTarget;
@@ -91,18 +91,18 @@ contract ProgramManager {
         uint256 stakingTarget;
         uint256 minimumDeposit;
         uint256 APY;
+        uint256 endDate;
         bool isStakingOpen;
         bool isWithdrawalOpen;
         bool isInterestClaimOpen;
         PoolType poolType;
-        mapping(address => uint256) stakerList;
         address[] stakerAddressList;
+        mapping(address => uint256) stakerList;
         mapping(address => TokenDeposit[]) stakerDepositList;
         mapping(address => uint256) withdrawerList;
         mapping(address => uint256) interestClaimerList;
         mapping(address => uint256) fundRestorerList;
         mapping(DataType => uint256) totalList;
-        uint256 endDate;
     }
 
     /// @dev The list holding all the created pools

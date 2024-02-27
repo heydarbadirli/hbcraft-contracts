@@ -30,7 +30,9 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     /// @dev Exception raised if the pool data related functions called before any pools created
     error NoPoolsCreatedYet();
     /// @dev Exception raised if the function called to stake in a non-existent pool
-    error PoolDoNotExist(uint256 poolID);
+    error PoolDoesNotExist(uint256 poolID);
+    /// @dev Exception raised if the function called to withdraw a non-existent deposit
+    error DepositDoesNotExist(uint256 poolID, uint256 depositNumber);
     /// @dev Exception raised if the total staked token amount will surrpass the  of the pool with the intended token amount to stake
     error AmountExceedsPoolTarget(uint256 poolID);
     /// @dev Exception raised if the token amount sent is over the fund left to restore
@@ -75,7 +77,13 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
     }
 
     function _checkPoolExistence(uint256 poolID) private view {
-        if (!(poolID < (stakingPoolList.length))) revert PoolDoNotExist(poolID);
+        if (!(poolID < (stakingPoolList.length))) revert PoolDoesNotExist(poolID);
+    }
+
+    function _checkDepositExistence(uint256 poolID, uint256 depositNumber) private view {
+        if (!(depositNumber < (stakingPoolList[poolID].stakerDepositList[msg.sender].length))) {
+            revert DepositDoesNotExist(poolID, depositNumber);
+        }
     }
 
     function _checkProgramStatus(bool mustReturn) internal view returns (uint256) {
@@ -117,6 +125,11 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
 
     modifier ifPoolExists(uint256 poolID) {
         _checkPoolExistence(poolID);
+        _;
+    }
+
+    modifier ifDepositExists(uint256 poolID, uint256 depositNumber) {
+        _checkDepositExistence(poolID, depositNumber);
         _;
     }
 

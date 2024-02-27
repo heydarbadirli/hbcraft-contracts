@@ -10,6 +10,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     // =     Program Parameter Setters      =
     // ======================================
     function transferOwnership(address userAddress) external onlyContractOwner {
+        require(userAddress != address(0), "new contract owner cannot be zero");
         require(userAddress != msg.sender, "Same with current owner");
         contractOwner = userAddress;
 
@@ -48,12 +49,8 @@ contract AdministrativeFunctions is ComplianceCheck {
         bool stakingAvailabilityStatus,
         uint256 APYToSet
     ) private {
-        /// @notice Adds a new, empty StakingPool instance to the stakingPoolList
-        stakingPoolList.push();
-
-        /// @notice Accesses the newly created instance at the end of the array to set its properties
-        uint256 newIndex = stakingPoolList.length - 1;
-        StakingPool storage targetPool = stakingPoolList[newIndex];
+        /// @notice Adds a new, empty StakingPool instance to the stakingPoolList and accesses the newly created instance
+        StakingPool storage targetPool = stakingPoolList.push();
         targetPool.poolType = typeToSet; // Set the poolType
         targetPool.stakingTarget = stakingTargetToSet; // Set the stakingTarget
         targetPool.minimumDeposit = minimumDepositToSet; // Set the minimumDeposit
@@ -63,7 +60,11 @@ contract AdministrativeFunctions is ComplianceCheck {
         targetPool.APY = APYToSet; // Set the APY
 
         emit AddStakingPool(
-            newIndex, typeToSet, stakingTargetToSet, APYToSet / stakingTokenDecimals, minimumDepositToSet
+            stakingPoolList.length - 1,
+            typeToSet,
+            stakingTargetToSet,
+            APYToSet / fixedPointPrecision,
+            minimumDepositToSet
         );
     }
 
@@ -93,7 +94,7 @@ contract AdministrativeFunctions is ComplianceCheck {
             stakingTargetToSet,
             minimumDepositToSet,
             stakingAvailabilityStatus,
-            APYToSet * stakingTokenDecimals
+            APYToSet * fixedPointPrecision
         );
     }
 
@@ -111,7 +112,7 @@ contract AdministrativeFunctions is ComplianceCheck {
         if (APYToSet == 0) revert InvalidArgumentValue("APY", 1);
         PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
         _addStakingPool(
-            typeAsPoolType, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * stakingTokenDecimals
+            typeAsPoolType, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * fixedPointPrecision
         );
     }
 
@@ -223,7 +224,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     {
         if (newAPY == 0) revert InvalidArgumentValue("APY", 1);
 
-        uint256 APYValueToWei = newAPY * stakingTokenDecimals;
+        uint256 APYValueToWei = newAPY * fixedPointPrecision;
         require(APYValueToWei != stakingPoolList[poolID].APY, "The same as current APY");
 
         stakingPoolList[poolID].APY = APYValueToWei;
