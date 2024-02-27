@@ -42,6 +42,7 @@ contract AdministrativeFunctions is ComplianceCheck {
         emit UpdateDefaultMinimumDeposit(newDefaultMinimumDeposit);
     }
 
+    /// @notice Adds a new, empty StakingPool instance to the stakingPoolList
     function _addStakingPool(
         PoolType typeToSet,
         uint256 stakingTargetToSet,
@@ -49,15 +50,14 @@ contract AdministrativeFunctions is ComplianceCheck {
         bool stakingAvailabilityStatus,
         uint256 APYToSet
     ) private {
-        /// @notice Adds a new, empty StakingPool instance to the stakingPoolList and accesses the newly created instance
         StakingPool storage targetPool = stakingPoolList.push();
-        targetPool.poolType = typeToSet; // Set the poolType
-        targetPool.stakingTarget = stakingTargetToSet; // Set the stakingTarget
-        targetPool.minimumDeposit = minimumDepositToSet; // Set the minimumDeposit
-        targetPool.isStakingOpen = stakingAvailabilityStatus; // Set the isStakingOpen
-        targetPool.isWithdrawalOpen = (typeToSet == PoolType.LOCKED) ? false : true; // Set the isWithdrawalOpen
-        targetPool.isInterestClaimOpen = true; // Set the isInterestClaimOpen
-        targetPool.APY = APYToSet; // Set the APY
+        targetPool.poolType = typeToSet;
+        targetPool.stakingTarget = stakingTargetToSet;
+        targetPool.minimumDeposit = minimumDepositToSet;
+        targetPool.isStakingOpen = stakingAvailabilityStatus;
+        targetPool.isWithdrawalOpen = (typeToSet == PoolType.LOCKED) ? false : true;
+        targetPool.isInterestClaimOpen = true;
+        targetPool.APY = APYToSet;
 
         emit AddStakingPool(
             stakingPoolList.length - 1,
@@ -68,19 +68,9 @@ contract AdministrativeFunctions is ComplianceCheck {
         );
     }
 
-    function _convertUintToPoolType(uint256 typeAsUint) private pure returns (PoolType) {
-        require(typeAsUint < 2, "Invalid Type");
-
-        if (typeAsUint == 0) {
-            return PoolType.LOCKED;
-        } else {
-            return PoolType.FLEXIBLE;
-        }
-    }
-
     /// @dev Adds a pool with custom set properties
     function addStakingPoolCustom(
-        uint256 typeToSet,
+        PoolType typeToSet,
         uint256 stakingTargetToSet,
         uint256 minimumDepositToSet,
         bool stakingAvailabilityStatus,
@@ -88,9 +78,8 @@ contract AdministrativeFunctions is ComplianceCheck {
     ) external onlyContractOwner {
         if (minimumDepositToSet == 0) revert InvalidArgumentValue("Minimum Deposit", 1);
         if (APYToSet == 0) revert InvalidArgumentValue("APY", 1);
-        PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
         _addStakingPool(
-            typeAsPoolType,
+            typeToSet,
             stakingTargetToSet,
             minimumDepositToSet,
             stakingAvailabilityStatus,
@@ -108,12 +97,9 @@ contract AdministrativeFunctions is ComplianceCheck {
      *     - Sets isInterestClaimOpen true
      *
      */
-    function addStakingPoolDefault(uint256 typeToSet, uint256 APYToSet) external onlyContractOwner {
+    function addStakingPoolDefault(PoolType typeToSet, uint256 APYToSet) external onlyContractOwner {
         if (APYToSet == 0) revert InvalidArgumentValue("APY", 1);
-        PoolType typeAsPoolType = _convertUintToPoolType(typeToSet);
-        _addStakingPool(
-            typeAsPoolType, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * fixedPointPrecision
-        );
+        _addStakingPool(typeToSet, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * fixedPointPrecision);
     }
 
     /**

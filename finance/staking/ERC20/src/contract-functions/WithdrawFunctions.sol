@@ -218,10 +218,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
     // ======================================
     // =    Withdraw Related Functions      =
     // ======================================
-    function _withdrawDeposit(uint256 poolID, uint256 depositNumber, bool isBatchWithdrawal)
-        private
-        ifAvailable(poolID, PoolDataType.IS_WITHDRAWAL_OPEN)
-    {
+    function _withdrawDeposit(uint256 poolID, uint256 depositNumber, bool isBatchWithdrawal) private {
         TokenDeposit storage targetDeposit = stakingPoolList[poolID].stakerDepositList[msg.sender][depositNumber];
         uint256 depositWithdrawalDate = targetDeposit.withdrawalDate;
 
@@ -246,6 +243,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         nonReentrant
         ifPoolExists(poolID)
         ifDepositExists(poolID, depositNumber)
+        ifAvailable(poolID, PoolDataType.IS_WITHDRAWAL_OPEN)
         enoughFundsAvailable(poolID, stakingPoolList[poolID].stakerDepositList[msg.sender][depositNumber].amount)
     {
         _withdrawDeposit(poolID, depositNumber, false);
@@ -256,6 +254,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         nonReentrant
         ifPoolExists(poolID)
         sufficientBalance(poolID)
+        ifAvailable(poolID, PoolDataType.IS_WITHDRAWAL_OPEN)
         enoughFundsAvailable(poolID, stakingPoolList[poolID].stakerList[msg.sender])
     {
         StakingPool storage targetPool = stakingPoolList[poolID];

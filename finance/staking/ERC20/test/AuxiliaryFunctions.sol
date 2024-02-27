@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import "./ReadFunctions.sol";
+import "../src/ProgramManager.sol";
 
 contract AuxiliaryFunctions is ReadFunctions {
     // ======================================
@@ -23,9 +24,9 @@ contract AuxiliaryFunctions is ReadFunctions {
         if (userAddress != address(this)) vm.startPrank(userAddress);
 
         if (ifLocked) {
-            stakingContract.addStakingPoolDefault(0, _lockedAPY);
+            stakingContract.addStakingPoolDefault(ProgramManager.PoolType.LOCKED, _lockedAPY);
         } else {
-            stakingContract.addStakingPoolDefault(1, _flexibleAPY);
+            stakingContract.addStakingPoolDefault(ProgramManager.PoolType.FLEXIBLE, _flexibleAPY);
         }
 
         if (userAddress != address(this)) vm.stopPrank();
@@ -35,9 +36,13 @@ contract AuxiliaryFunctions is ReadFunctions {
         if (userAddress != address(this)) vm.startPrank(userAddress);
 
         if (ifLocked) {
-            stakingContract.addStakingPoolCustom(0, _defaultStakingTarget, _defaultMinimumDeposit, true, _lockedAPY);
+            stakingContract.addStakingPoolCustom(
+                ProgramManager.PoolType.LOCKED, _defaultStakingTarget, _defaultMinimumDeposit, true, _lockedAPY
+            );
         } else {
-            stakingContract.addStakingPoolCustom(1, _defaultStakingTarget, _defaultMinimumDeposit, false, _flexibleAPY);
+            stakingContract.addStakingPoolCustom(
+                ProgramManager.PoolType.FLEXIBLE, _defaultStakingTarget, _defaultMinimumDeposit, false, _flexibleAPY
+            );
         }
 
         if (userAddress != address(this)) vm.stopPrank();

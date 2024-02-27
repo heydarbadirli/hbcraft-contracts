@@ -9,9 +9,7 @@ contract AccessControl is ProgramManager {
     // ======================================
     // =          State Variables           =
     // ======================================
-    /// @notice Access Tiers
     /**
-     * @dev
      *     - Certain functions can be called only if you have the matching AccessTier requirement
      *     - Tier 2 - Contract Owner, Tier 1 - Contract Admins, Tier 0 - Users
      *     - Check ComplianceCheck.sol for more info
