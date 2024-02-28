@@ -22,7 +22,7 @@ import "./contract-functions/AdministrativeFunctions.sol";
 import "./contract-functions/StakingFunctions.sol";
 import "./contract-functions/WithdrawFunctions.sol";
 
-/// @title ERC20 Staking by HB Craft (v1.4.2)
+/// @title ERC20 Staking by HB Craft (v1.4.1)
 /// @author Heydar Badirli
 contract ERC20Staking is AdministrativeFunctions, StakingFunctions, WithdrawFunctions {
     constructor(
@@ -38,6 +38,6 @@ contract ERC20Staking is AdministrativeFunctions, StakingFunctions, WithdrawFunc
         defaultStakingTarget = _defaultStakingTarget;
         defaultMinimumDeposit = _defaultMinimumDeposit;
 
-        emit CreateProgram(stakingToken.symbol(), tokenAddress, _defaultStakingTarget, _defaultMinimumDeposit);
+        emit CreateProgram(STAKING_TOKEN.symbol(), tokenAddress, _defaultStakingTarget, _defaultMinimumDeposit);
     }
 }

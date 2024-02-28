@@ -55,8 +55,8 @@ abstract contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         depositAmount = deposit.amount;
         interestAlreadyClaimed = deposit.claimedInterest;
 
-        claimableInterest =
-            (((depositAmount * ((depositAPY / 365) * daysPassed) / 100)) / fixedPointPrecision) - interestAlreadyClaimed;
+        claimableInterest = (((depositAmount * ((depositAPY / 365) * daysPassed) / 100)) / FIXED_POINT_PRECISION)
+            - interestAlreadyClaimed;
         return claimableInterest;
     }
 
@@ -113,7 +113,8 @@ abstract contract WithdrawFunctions is ReadFunctions, WriteFunctions {
             TokenDeposit storage targetDeposit = targetStakingPool.stakerDepositList[userAddress][depositNumber];
             if (targetDeposit.withdrawalDate == 0 && (((block.timestamp - targetDeposit.stakingDate) / (1 days)) >= 1))
             {
-                totalLastDayGenerated += (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / fixedPointPrecision;
+                totalLastDayGenerated +=
+                    (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / FIXED_POINT_PRECISION;
             }
         }
 
@@ -141,7 +142,7 @@ abstract contract WithdrawFunctions is ReadFunctions, WriteFunctions {
                         stakingPoolList[poolID].stakerDepositList[userAddress][depositNumber];
                     if (targetDeposit.withdrawalDate == 0) {
                         dailyTotalInterestGenerated +=
-                            (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / fixedPointPrecision;
+                            (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / FIXED_POINT_PRECISION;
                     }
                 }
             }
@@ -149,7 +150,7 @@ abstract contract WithdrawFunctions is ReadFunctions, WriteFunctions {
             StakingPool storage targetStakingPool = stakingPoolList[poolID];
             dailyTotalInterestGenerated = (
                 targetStakingPool.totalList[DataType.STAKED] * (targetStakingPool.APY / 365) / 100
-            ) / fixedPointPrecision;
+            ) / FIXED_POINT_PRECISION;
         }
 
         return dailyTotalInterestGenerated;

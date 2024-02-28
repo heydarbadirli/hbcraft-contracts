@@ -9,9 +9,8 @@ contract ProgramManager {
     // ======================================
     // =          State Variables           =
     // ======================================
-    IERC20Metadata public immutable stakingToken;
-    uint256 public immutable stakingTokenDecimalCount;
-    uint256 internal constant fixedPointPrecision = 10 ** 18;
+    IERC20Metadata public immutable STAKING_TOKEN;
+    uint256 internal constant FIXED_POINT_PRECISION = 10 ** 18;
 
     // Default value to set the stakingTarget property for the new StakingPool if not specified
     uint256 internal defaultStakingTarget;
@@ -23,7 +22,7 @@ contract ProgramManager {
      *     - Set when the contract is deployed
      *     - Asked when endPool() function is called
      */
-    uint256 internal immutable confirmationCode;
+    uint256 internal immutable CONFIRMATION_CODE;
 
     /// Program token balance for paying interests
     uint256 internal interestPool;
@@ -105,9 +104,7 @@ contract ProgramManager {
     StakingPool[] internal stakingPoolList;
 
     constructor(IERC20Metadata _stakingToken, uint256 _confirmationCode) {
-        stakingToken = _stakingToken;
-        stakingTokenDecimalCount = _stakingToken.decimals();
-
-        confirmationCode = _confirmationCode;
+        STAKING_TOKEN = _stakingToken;
+        CONFIRMATION_CODE = _confirmationCode;
     }
 }

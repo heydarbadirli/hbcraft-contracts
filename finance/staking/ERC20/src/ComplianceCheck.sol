@@ -246,10 +246,10 @@ abstract contract ComplianceCheck is AccessControl, ReentrancyGuard {
     // =    Token Management Functions      =
     // ======================================
     function _receiveToken(uint256 tokenAmount) internal {
-        stakingToken.safeTransferFrom(msg.sender, address(this), tokenAmount);
+        STAKING_TOKEN.safeTransferFrom(msg.sender, address(this), tokenAmount);
     }
 
     function _sendToken(address toAddress, uint256 tokenAmount) internal {
-        stakingToken.safeTransfer(toAddress, tokenAmount);
+        STAKING_TOKEN.safeTransfer(toAddress, tokenAmount);
     }
 }

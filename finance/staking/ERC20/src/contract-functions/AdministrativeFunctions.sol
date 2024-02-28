@@ -64,7 +64,7 @@ abstract contract AdministrativeFunctions is ComplianceCheck {
             stakingPoolList.length - 1,
             typeToSet,
             stakingTargetToSet,
-            APYToSet / fixedPointPrecision,
+            APYToSet / FIXED_POINT_PRECISION,
             minimumDepositToSet
         );
     }
@@ -84,7 +84,7 @@ abstract contract AdministrativeFunctions is ComplianceCheck {
             stakingTargetToSet,
             minimumDepositToSet,
             stakingAvailabilityStatus,
-            APYToSet * fixedPointPrecision
+            APYToSet * FIXED_POINT_PRECISION
         );
     }
 
@@ -100,7 +100,7 @@ abstract contract AdministrativeFunctions is ComplianceCheck {
      */
     function addStakingPoolDefault(PoolType typeToSet, uint256 APYToSet) external onlyContractOwner {
         if (APYToSet == 0) revert InvalidArgumentValue("APY", 1);
-        _addStakingPool(typeToSet, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * fixedPointPrecision);
+        _addStakingPool(typeToSet, defaultStakingTarget, defaultMinimumDeposit, true, APYToSet * FIXED_POINT_PRECISION);
     }
 
     /**
@@ -211,7 +211,7 @@ abstract contract AdministrativeFunctions is ComplianceCheck {
     {
         if (newAPY == 0) revert InvalidArgumentValue("APY", 1);
 
-        uint256 APYValueToWei = newAPY * fixedPointPrecision;
+        uint256 APYValueToWei = newAPY * FIXED_POINT_PRECISION;
         require(APYValueToWei != stakingPoolList[poolID].APY, "The same as current APY");
 
         stakingPoolList[poolID].APY = APYValueToWei;
@@ -244,7 +244,7 @@ abstract contract AdministrativeFunctions is ComplianceCheck {
         ifPoolExists(poolID)
         ifPoolEnded(poolID)
     {
-        require(_confirmationCode == confirmationCode, "Incorrect Code");
+        require(_confirmationCode == CONFIRMATION_CODE, "Incorrect Code");
         changePoolAvailabilityStatus(poolID, 0, false);
         changePoolAvailabilityStatus(poolID, 1, true);
         changePoolAvailabilityStatus(poolID, 2, true);

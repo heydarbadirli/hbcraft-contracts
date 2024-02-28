@@ -10,7 +10,7 @@ abstract contract ReadFunctions is ComplianceCheck {
     // =  Functoins to check program data   =
     // ======================================
     function checkConfirmationCode() external view returns (uint256) {
-        return confirmationCode;
+        return CONFIRMATION_CODE;
     }
 
     function checkPoolCount() external view returns (uint256) {
@@ -49,7 +49,7 @@ abstract contract ReadFunctions is ComplianceCheck {
     }
 
     function checkAPY(uint256 poolID) external view ifPoolExists(poolID) returns (uint256) {
-        return stakingPoolList[poolID].APY / fixedPointPrecision;
+        return stakingPoolList[poolID].APY / FIXED_POINT_PRECISION;
     }
 
     /// @dev Returns timestamp
