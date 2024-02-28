@@ -5,7 +5,7 @@ pragma solidity 0.8.20;
 
 import "../ComplianceCheck.sol";
 
-contract ReadFunctions is ComplianceCheck {
+abstract contract ReadFunctions is ComplianceCheck {
     // ======================================
     // =  Functoins to check program data   =
     // ======================================

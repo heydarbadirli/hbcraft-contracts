@@ -187,4 +187,18 @@ contract WithdrawalScenarious is WithdrawalFunctions {
         //        _withdrawTokenWithTest(userOne, 0, 0, false, true);
         _withdrawTokenWithTest(userOne, 0, 9999, false, true);
     }
+
+    function test_Withdrawal_AfterCollectFunds() external {
+        _addPool(address(this), false);
+
+        _stakeTokenWithAllowance(userOne, 0, amountToStake);
+        _stakeTokenWithAllowance(userOne, 0, amountToStake);
+
+        stakingContract.collectFunds(0, 2 * amountToStake);
+        myToken.increaseAllowance(address(stakingContract), 2 * amountToStake);
+        stakingContract.restoreFunds(0, 2 * amountToStake);
+
+        _withdrawTokenWithTest(userOne, 0, 0, false, true);
+        _withdrawTokenWithTest(userOne, 0, 1, false, true);
+    }
 }

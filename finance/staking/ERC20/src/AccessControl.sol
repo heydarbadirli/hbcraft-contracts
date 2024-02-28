@@ -5,7 +5,7 @@ pragma solidity 0.8.20;
 
 import "./ProgramManager.sol";
 
-contract AccessControl is ProgramManager {
+abstract contract AccessControl is ProgramManager {
     // ======================================
     // =          State Variables           =
     // ======================================

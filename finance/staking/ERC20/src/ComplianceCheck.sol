@@ -7,7 +7,7 @@ import "./AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract ComplianceCheck is AccessControl, ReentrancyGuard {
+abstract contract ComplianceCheck is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20Metadata;
 
     // ======================================
@@ -110,7 +110,7 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
         uint256 _stakingTarget = targetStakingPool.stakingTarget;
         uint256 _totalStaked = targetStakingPool.totalList[DataType.STAKED];
 
-        if (_amountToStake > (_stakingTarget - _totalStaked)) {
+        if ((_amountToStake + _totalStaked) > _stakingTarget) {
             revert AmountExceedsPoolTarget(poolID);
         }
     }
@@ -171,7 +171,7 @@ contract ComplianceCheck is AccessControl, ReentrancyGuard {
         StakingPool storage targetStakingPool = stakingPoolList[poolID];
 
         uint256 fundAvailableToClaim = targetStakingPool.totalList[DataType.STAKED]
-            - targetStakingPool.totalList[DataType.FUNDS_COLLECTED] + targetStakingPool.totalList[DataType.FUNDS_RESTORED];
+            - (targetStakingPool.totalList[DataType.FUNDS_COLLECTED] - targetStakingPool.totalList[DataType.FUNDS_RESTORED]);
         if (amountToCheck > fundAvailableToClaim) {
             revert NotEnoughFundsInThePool(poolID, amountToCheck, fundAvailableToClaim);
         }

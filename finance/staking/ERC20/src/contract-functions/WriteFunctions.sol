@@ -5,7 +5,7 @@ pragma solidity 0.8.20;
 
 import "../ComplianceCheck.sol";
 
-contract WriteFunctions is ComplianceCheck {
+abstract contract WriteFunctions is ComplianceCheck {
     function _updateStakerBalance(ActionType action, uint256 poolID, address userAddress, uint256 tokenAmount)
         private
     {

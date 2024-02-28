@@ -1,17 +1,14 @@
 <img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="200" height="200"/>
 
 # ERC20 Staking by HB Craft
-![version](https://img.shields.io/badge/version-1.4.1-blue)
+![version](https://img.shields.io/badge/version-1.4.2-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 - [What's New?](#whats-new)
-    - [Version 1.4.1](#version-141---20240227)
-    - [Version 1.4.0](#version-140---20240221)
-    - [Version 1.3.1](#version-131---20240214)
-    - [Version 1.3.0](#version-130---20240213)
-    - [Version 1.2.0](#version-120---20240208)
-    - [Version 1.1.1](#version-111---20240205)
-    - [Version 1.1.0](#version-110---20240202)
+    - [Version 1.4](#version-142---20240228)
+    - [Version 1.3](#version-131---20240214)
+    - [Version 1.2](#version-120---20240208)
+    - [Version 1.1](#version-111---20240205)
 - [Contract Introduction](#contract-introduction)
     - [Key Features](#key-features)
     - [Supported Tokens](#supported-tokens)
@@ -24,6 +21,11 @@
 
 ---
 ### What's New?
+### Version 1.4.2 - 2024/02/28
+#### FIXED: `enoughFundsAvailable` and `ifTargetReached` BUGS
+The latest update fixes a significant issue where deposits could get stuck due to an arithmetic error raised while calculating available funds if the total staked amount was less than the collected funds. The correction ensures that funds are accurately calculated, preventing deposits from being trapped.
+
+---
 ### Version 1.4.1 - 2024/02/27
 #### 1) ADDED: Zero Address Check
 The check is added to the `transferOwnership` function to prevent accidentally losing control of the contract by setting the owner to an unowned address.
@@ -157,14 +159,9 @@ A series of new events are added to improve the ease of tracking program updates
 - Unit tests have been broadened to align with the latest updates, ensuring comprehensive validation of the modified functionalities.
 - The `InterestManagementScenarios.t.sol` file name is changed to `MainManagementScenarios.t.sol` to better reflect the comprehensive testing of main management scenarios.
 
-#### 10) CHANGED: Enum Types as an Input/Output
+#### 10) CHANGED: Enum Type as an Input/Output
 Custom enum types as a function argument or return type have been converted to uint256 to ensure compatibility across different software interfaces.
 
-For the `uint256 typeToSet` argument the numbers represent:
-  ```bash
-  0 - Locked Pool Type
-  1 - Flexible Pool Type
-  ```
 For the `uint256 parameterToChange` argument the numbers represent:
   ```bash
   0 - isStakingOpen
@@ -223,6 +220,11 @@ The contract allows to launch a staking program and to create an unlimited numbe
 ### Key Features
 **Multiple Staking Pools:**
 - Ability to create numerous locked or flexible staking pools.
+
+- **Enum `PoolType`:** Defines the type of a `StakingPool`.
+  ```solidity
+  enum PoolType { LOCKED, FLEXIBLE }
+  ```
 
 **Customizable Pool Properties:**
 Each pool can have:

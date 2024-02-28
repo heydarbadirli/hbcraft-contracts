@@ -6,7 +6,7 @@ pragma solidity 0.8.20;
 import "./ReadFunctions.sol";
 import "./WriteFunctions.sol";
 
-contract WithdrawFunctions is ReadFunctions, WriteFunctions {
+abstract contract WithdrawFunctions is ReadFunctions, WriteFunctions {
     // ======================================
     // =     Interest Claim Functions       =
     // ======================================
@@ -31,7 +31,7 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         }
 
         // Convert the time elapsed to days
-        uint256 daysPassed = timePassed / 60 / 60 / 24;
+        uint256 daysPassed = timePassed / (1 days);
         return daysPassed;
     }
 
@@ -111,10 +111,8 @@ contract WithdrawFunctions is ReadFunctions, WriteFunctions {
         StakingPool storage targetStakingPool = stakingPoolList[poolID];
         for (uint256 depositNumber = 0; depositNumber < userDepositCount; depositNumber++) {
             TokenDeposit storage targetDeposit = targetStakingPool.stakerDepositList[userAddress][depositNumber];
-            if (
-                targetDeposit.withdrawalDate == 0
-                    && (((block.timestamp - targetDeposit.stakingDate) / 60 / 60 / 24) >= 1)
-            ) {
+            if (targetDeposit.withdrawalDate == 0 && (((block.timestamp - targetDeposit.stakingDate) / (1 days)) >= 1))
+            {
                 totalLastDayGenerated += (targetDeposit.amount * (targetDeposit.APY / 365) / 100) / fixedPointPrecision;
             }
         }

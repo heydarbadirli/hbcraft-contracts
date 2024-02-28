@@ -5,7 +5,7 @@ pragma solidity 0.8.20;
 
 import "../ComplianceCheck.sol";
 
-contract AdministrativeFunctions is ComplianceCheck {
+abstract contract AdministrativeFunctions is ComplianceCheck {
     // ======================================
     // =     Program Parameter Setters      =
     // ======================================
@@ -37,6 +37,7 @@ contract AdministrativeFunctions is ComplianceCheck {
     }
 
     function setDefaultMinimumDeposit(uint256 newDefaultMinimumDeposit) external onlyContractOwner {
+        if (newDefaultMinimumDeposit == 0) revert InvalidArgumentValue("Minimum Deposit", 1);
         defaultMinimumDeposit = newDefaultMinimumDeposit;
 
         emit UpdateDefaultMinimumDeposit(newDefaultMinimumDeposit);
@@ -223,6 +224,7 @@ contract AdministrativeFunctions is ComplianceCheck {
         ifPoolExists(poolID)
         ifPoolEnded(poolID)
     {
+        if (newMinimumDeposit == 0) revert InvalidArgumentValue("Minimum Deposit", 1);
         stakingPoolList[poolID].minimumDeposit = newMinimumDeposit;
 
         emit UpdateMinimumDeposit(poolID, newMinimumDeposit);

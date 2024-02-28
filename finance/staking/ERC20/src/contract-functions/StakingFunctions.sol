@@ -6,7 +6,7 @@ pragma solidity 0.8.20;
 import "./ReadFunctions.sol";
 import "./WriteFunctions.sol";
 
-contract StakingFunctions is ReadFunctions, WriteFunctions {
+abstract contract StakingFunctions is ReadFunctions, WriteFunctions {
     function stakeToken(uint256 poolID, uint256 tokenAmount)
         external
         nonReentrant
