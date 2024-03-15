@@ -22,7 +22,7 @@ import "./contract-functions/AdministrativeFunctions.sol";
 import "./contract-functions/StakingFunctions.sol";
 import "./contract-functions/WithdrawFunctions.sol";
 
-/// @title ERC20 Staking by HB Craft (v1.4.1)
+/// @title ERC20 Staking by HB Craft (v1.4.2)
 /// @author Heydar Badirli
 contract ERC20Staking is AdministrativeFunctions, StakingFunctions, WithdrawFunctions {
     constructor(
