@@ -51,7 +51,7 @@ abstract contract StoreManager {
     Listing[] internal listings;
     uint256 internal activeListingStartIndex = 0;
 
-    bool public isAutoPricingEnabled = true;
+    bool public isRatePeriodSystemEnabled = true;
 
     enum RatePeriod {
         LOCK,

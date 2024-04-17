@@ -29,6 +29,7 @@ contract TestSetUp is Test {
     address buyer = address(100);
     address buyer2 = address(200);
     address buyer3 = address(300);
+    address treasury = address(1500);
 
     function setUp() external {
         baseToken = new MockToken(uint8(btDecimals));
@@ -42,6 +43,7 @@ contract TestSetUp is Test {
         quoteToken.transfer(buyer3, buyerBalance * (10 ** qtDecimals));
 
         testStore = new ERC1155Store(address(dexPool));
+        testStore.changeTreasuryAddress(treasury);
 
         testNFT = new MockNFT(lister);
     }

@@ -8,12 +8,12 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 abstract contract PurchaseFunctions is AuxiliaryFunctions, ReentrancyGuard {
     function _purchase(Listing memory targetListing, uint256 listingID, uint256 quantity, uint256 priceInQT) private {
-        // ??? Optimize
         listings[listingID].quantity -= quantity;
-        if (listings[listingID].quantity == 0){listings[listingID].isActive = false;}
-        if (isAutoPricingEnabled) _updateStateForCurrentPeriod();
-        _payLister(targetListing.listerAddress, priceInQT * quantity);
+        if (listings[listingID].quantity == 0) listings[listingID].isActive = false;
+        if (isRatePeriodSystemEnabled) _updateStateForCurrentPeriod();
+        _payTreasury(priceInQT * quantity);
         _transferNFTs(targetListing.listerAddress, targetListing.nftContractAddress, targetListing.nftID, quantity);
+        emit Purchase(listingID, quantity, priceInQT);
     }
 
     function purchase(uint256 listingID, uint256 quantity)

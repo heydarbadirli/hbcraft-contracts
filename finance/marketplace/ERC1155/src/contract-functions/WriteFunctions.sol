@@ -27,6 +27,7 @@ abstract contract WriteFunctions is ReadFunctions {
 
     constructor() {
         contractOwner = msg.sender;
+        treasury = msg.sender;
         _updateStateVariables(RatePeriod.FLOATING);
     }
 }

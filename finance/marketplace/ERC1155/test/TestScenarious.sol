@@ -117,7 +117,6 @@ contract TestScenarios is AuxiliaryFunctions {
         _purchaseWithTest(buyer, 0, 0, 1, true, false);
     }
 
-    
     function test_GasUsage() external {
         testStore.addLister(lister);
         _createListingWithApproval(lister, 0, 10, 10);
@@ -136,9 +135,7 @@ contract TestScenarios is AuxiliaryFunctions {
         }
 
         uint256[] memory myList = testStore.getValidListingIDs();
-        for (uint256 x; x < myList.length; x++) {
-            console.log(x);
-        }
+        for (uint256 x; x < myList.length; x++) {}
 
         uint256[] memory litingIDs;
         address[] memory nftContractAddresses;

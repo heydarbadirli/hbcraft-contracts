@@ -7,10 +7,12 @@ import "./StoreManager.sol";
 
 abstract contract AccessControl is StoreManager {
     address public contractOwner;
+    address public treasury;
     mapping(address => bool) public isLister;
 
     enum AccessTier {
         LISTER,
+        TREASURY,
         OWNER
     }
 
@@ -26,6 +28,8 @@ abstract contract AccessControl is StoreManager {
     /// @dev Functions to check authorization and revert if not authorized
     function _checkAccess(AccessTier tierToCheck) private view {
         if (tierToCheck == AccessTier.OWNER && msg.sender != contractOwner) {
+            revert UnauthorizedAccess(tierToCheck);
+        } else if (tierToCheck == AccessTier.TREASURY && msg.sender != treasury) {
             revert UnauthorizedAccess(tierToCheck);
         } else if (tierToCheck == AccessTier.LISTER && !isLister[msg.sender]) {
             revert UnauthorizedAccess(tierToCheck);
@@ -43,6 +47,12 @@ abstract contract AccessControl is StoreManager {
     /// @dev The functions only accesible by the contractOwner
     modifier onlyContractOwner() {
         _checkAccess(AccessTier.OWNER);
+        _;
+    }
+
+    /// @dev The functions only accesible by the treasury
+    modifier onlyTreasury() {
+        _checkAccess(AccessTier.TREASURY);
         _;
     }
 

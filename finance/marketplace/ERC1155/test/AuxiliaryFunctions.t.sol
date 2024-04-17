@@ -70,7 +70,7 @@ contract AuxiliaryFunctions is TestSetUp {
     ) internal {
         uint256 listingPriceInQT = testStore.checkListingQTPrice(listingID);
 
-        uint256 qtBalanceBeforeLister = quoteToken.balanceOf(lister);
+        uint256 qtBalanceBeforeTreasury = quoteToken.balanceOf(treasury);
         uint256 qtBalanceBeforeBuyer = quoteToken.balanceOf(user);
 
         uint256 nftBalanceBeforeLister = testNFT.balanceOf(lister, nftID);
@@ -86,7 +86,7 @@ contract AuxiliaryFunctions is TestSetUp {
         assertEq(testNFT.balanceOf(lister, nftID), nftBalanceBeforeLister - quantity);
         assertEq(testNFT.balanceOf(user, nftID), nftBalanceBeforeBuyer + quantity);
 
-        assertEq(quoteToken.balanceOf(lister), qtBalanceBeforeLister + (quantity * listingPriceInQT));
+        assertEq(quoteToken.balanceOf(treasury), qtBalanceBeforeTreasury + (quantity * listingPriceInQT));
         assertEq(quoteToken.balanceOf(user), qtBalanceBeforeBuyer - (quantity * listingPriceInQT));
 
         assertEq(testStore.getListingQuantityLeft(listingID), listingQuantitiyBefore - quantity);

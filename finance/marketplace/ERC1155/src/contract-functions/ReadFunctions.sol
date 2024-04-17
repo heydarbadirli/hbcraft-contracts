@@ -67,7 +67,7 @@ abstract contract ReadFunctions is AccessControl, MathFunctions {
     }
 
     function convertToQT(uint256 btAmount, bool basedOnCurrentRate) public view returns (uint256) {
-        /// ??? better way?
+        /// ??? to be considered for optimization
         if (basedOnCurrentRate) {
             return _adjustBTAmount(btAmount) * QUOTE_TOKEN.balanceOf(DEX_POOL_ADDRESS)
                 / _adjustBTAmount(BASE_TOKEN.balanceOf(DEX_POOL_ADDRESS));
@@ -90,16 +90,16 @@ abstract contract ReadFunctions is AccessControl, MathFunctions {
     // To the rateDifference
     function _getAdjustedCurrentBTQTRate() private view returns (uint256) {
         uint256 currentRate = getCurrentBTQTRate();
-        uint256 tolerance = (FIXED_POINT_PRECISION * currentRate * rateSlippageTolerance / 100) / FIXED_POINT_PRECISION;
-        uint256 upperLimit = currentRate + tolerance;
-        uint256 lowerLimit = currentRate - tolerance;
+        uint256 tolerance = (FIXED_POINT_PRECISION * lastCheckedBTQTRate * rateSlippageTolerance / 100) / FIXED_POINT_PRECISION;
+        uint256 upperLimit = lastCheckedBTQTRate + tolerance;
+        uint256 lowerLimit = lastCheckedBTQTRate - tolerance;
 
         if (currentRate < lowerLimit || currentRate > upperLimit) return _roundNumber(currentRate, 2);
         else return lastCheckedBTQTRate;
     }
 
     function _getReferenceRate(RatePeriod period) internal view returns (uint256) {
-        if (!isAutoPricingEnabled || period == RatePeriod.LOCK) {
+        if (!isRatePeriodSystemEnabled || period == RatePeriod.LOCK) {
             return lockedBTQTRate;
         } else if (period == RatePeriod.NEW_LOCK) {
             return lastCheckedBTQTRate;

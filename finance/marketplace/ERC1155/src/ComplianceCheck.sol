@@ -31,7 +31,6 @@ abstract contract ComplianceCheck is WriteFunctions {
     error PriceBelowMinRequirement(uint256 currentMinBTPriceReq);
     /// @dev Exception raised when 0 is provided as quantity
     error InvalidArgumentValue(string argument, uint256 minValue);
-    /// ??? @dev Exception raised when 0 is provided as quantity
     error PriceInQTIncreased(uint256 listingID, uint256 requestedPriceInQT, uint256 currentPriceInQT);
 
     // ======================================
@@ -53,7 +52,6 @@ abstract contract ComplianceCheck is WriteFunctions {
         else return true;
     }
 
-    /// ???
     function _isStoreContractApprovedByLister(address listerAddress, address nftContractAddress)
         private
         view
@@ -195,8 +193,8 @@ abstract contract ComplianceCheck is WriteFunctions {
     // ======================================
     // =    Token Management Functions      =
     // ======================================
-    function _payLister(address listerAddress, uint256 tokenAmount) internal {
-        QUOTE_TOKEN.safeTransferFrom(msg.sender, listerAddress, tokenAmount);
+    function _payTreasury(uint256 tokenAmount) internal {
+        QUOTE_TOKEN.safeTransferFrom(msg.sender, treasury, tokenAmount);
     }
 
     function _transferNFTs(address listerAddress, address nftContractAddress, uint256 nftID, uint256 quantity)
@@ -204,4 +202,29 @@ abstract contract ComplianceCheck is WriteFunctions {
     {
         IERC1155(nftContractAddress).safeTransferFrom(listerAddress, msg.sender, nftID, quantity, "");
     }
+
+    // ======================================
+    // =              Events                =
+    // ======================================
+    event TransferOwnership(address newOwnerAddress);
+    event ChangeTreasuryAddress(address newTreasuryAddress);
+
+    event ResetLockPeriod();
+
+    event SetRatePeriodSystemStatus(bool isEnabled);
+    event SetBTQTRate(uint256 newRate);
+
+    event SetRateLockDuration(uint256 durationInSeconds);
+    event SetMinimumPriceInQT(uint256 qtAmount);
+    event SetRateSlippageTolerance(uint256 percent);
+
+    event AddLister(address listerAddress);
+    event RemoveLister(address listerAddress);
+
+    event SetListingBTPrice(uint256 listingID, uint256 btAmount);
+
+    event CreateListing(address nftContractAddress, uint256 nftID, uint256 quantity, uint256 btPrice);
+    event CancelListing(uint256 listingID);
+    
+    event Purchase(uint256 listingID, uint256 quantity, uint256 qtPrice);
 }

@@ -12,16 +12,25 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
     function transferOwnership(address newOwnerAddress) external onlyContractOwner {
         if (contractOwner == newOwnerAddress) revert ValueReassignment();
         contractOwner = newOwnerAddress;
+        emit TransferOwnership(newOwnerAddress);
+    }
+
+    function changeTreasuryAddress(address newTreasuryAddress) external onlyTreasury {
+        if (treasury == newTreasuryAddress) revert ValueReassignment();
+        treasury = newTreasuryAddress;
+        emit ChangeTreasuryAddress(newTreasuryAddress);
     }
 
     function addLister(address listerAddress) external onlyContractOwner {
         if (isLister[listerAddress]) revert ValueReassignment();
         else isLister[listerAddress] = true;
+        emit AddLister(listerAddress);
     }
 
     function removeLister(address listerAddress) external onlyContractOwner {
         if (!isLister[listerAddress]) revert ValueReassignment();
         else isLister[listerAddress] = false;
+        emit RemoveLister(listerAddress);
     }
 
     // ======================================
@@ -34,6 +43,7 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
         ifListingMeetsListingReqs(nftContractAddress, nftID, quantity, btPrice)
     {
         listings.push(Listing(msg.sender, nftContractAddress, nftID, quantity, btPrice, true));
+        emit CreateListing(nftContractAddress, nftID, quantity, btPrice);
     }
 
     function cancelListing(uint256 listingID) external ifListingExists(listingID) ifListingOwner(listingID) {
@@ -41,6 +51,7 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
         listings[listingID].isActive = false;
         uint256[] memory activeListingIDs = getActiveListingIDs();
         if (activeListingIDs.length != 0) activeListingStartIndex = activeListingIDs[0];
+        emit CancelListing(listingID);
     }
 
     // ======================================
@@ -48,26 +59,38 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
     // ======================================
     function setListingBTPrice(uint256 listingID, uint256 btAmount) external ifListingOwner(listingID) {
         listings[listingID].btPricePerFraction = btAmount;
+        emit SetListingBTPrice(listingID, btAmount);
     }
 
     function setMinimumPriceInQT(uint256 qtAmount) external onlyContractOwner {
         minimumPriceInQT = qtAmount;
+        emit SetMinimumPriceInQT(qtAmount);
     }
 
     function setRateSlippageTolerance(uint256 percent) external onlyContractOwner {
         rateSlippageTolerance = percent;
+        emit SetRateSlippageTolerance(percent);
+    }
+
+    function setRateLockDuration(uint256 durationInSeconds) external onlyContractOwner {
+        rateLockDuration = durationInSeconds;
+        emit SetRateLockDuration(durationInSeconds);
     }
 
     function resetLockPeriod() external onlyContractOwner {
         _updateStateVariables(RatePeriod.FLOATING);
+        emit ResetLockPeriod();
     }
 
-    function setAutoPricingStatus(bool isEnabled) external onlyContractOwner {
-        if (isAutoPricingEnabled == isEnabled) revert ValueReassignment();
-        isAutoPricingEnabled = isEnabled;
+    function setRatePeriodSystemStatus(bool isEnabled) external onlyContractOwner {
+        if (isRatePeriodSystemEnabled == isEnabled) revert ValueReassignment();
+        isRatePeriodSystemEnabled = isEnabled;
+        emit SetRatePeriodSystemStatus(isEnabled);
     }
 
     function setBTQTRate() external onlyContractOwner {
-        lockedBTQTRate = getCurrentBTQTRate();
+        uint256 newRate = getCurrentBTQTRate();
+        lockedBTQTRate = newRate;
+        emit SetBTQTRate(newRate);
     }
 }
