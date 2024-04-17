@@ -52,6 +52,9 @@ A period imitating the next `LOCK` period. During this period, `lastCheckedBTQTR
 
 <img src="https://dl.dropboxusercontent.com/scl/fi/mpfwgnuo1f0go91jx0cvq/Frame-18.png?rlkey=7ie0ctwx8guk405k93u82ufus&st=bbz66m95&dl=0" alt="Rate Periods" clear="left" width="675" height="398"/>
 
+
+Nevertheless, it is also possible to disable the rate periods and just update the rate by calling following functions if needed:
+
 ---
 #### Access Control
 The contract implements an access control system with distinct roles. Functionalities are restricted based on access levels. The system ensures that access to the execution of functions are strictly regulated.
@@ -63,35 +66,53 @@ The contract implements an access control system with distinct roles. Functional
 
 
 ##### :warning: Important Points to Consider
+**Contract Management**
 - `contractOwner` manages the store's overall functioning.
 - Only the listers have the ability to create a listing, while `contractOwner` can also cancel a listing if needed.
 - No matter which listing is purchased, the payment is always made to the `treasury`.
 - By default, `contractOwner` and `treasury` are both set to the deployer address.
-- Both `contractOwner` and `treasury` can be changed by calling the respective functions, so `treasury` can be set to a multi-sig wallet to protect the revenue while `contractOwner` freely manages the store.
+- Both `contractOwner` and `treasury` can be changed by calling the respective functions (`transferOwnership` and `changeTreasuryAddress`), so `treasury` can be set to a multi-sig wallet to protect the revenue while `contractOwner` freely manages the store.
 - Only `treasury` can change the `treasury` address.
 
-Beside these, most functions are available only to `contractOwner` and you can find the complete list below:
+**Listing**
+- If listing price in `QUOTE_TOKEN` is less than `minimumPriceInQT`, then it can not be listed. The current listings with price in `QUOTE_TOKEN` less than `minimumPriceInQT` is considered invalid, so not displayed.
+
+`minimumPriceInQT` is set to `1 * 10 ** QUOTE_TOKEN.decimals()`, but it can be change via following commands:
+```solidity
+function setMinimumPriceInQT(uint256 qtAmount) external onlyContractOwner;
+```
+
+Most functions are available only to `contractOwner` and you can find the complete list below:
+```solidity
+function setRatePeriodSystemStatus(bool isEnabled) external onlyContractOwner;
+```
+
+```solidity
+function setBTQTRate() external onlyContractOwner;
+```
 
 | Function                   | Parameters                                                                        | Access Tier                 |
 |----------------------------|-----------------------------------------------------------------------------------|-----------------------------|
-| `changeTreasuryAddress`    | `address newTreasuryAddress`                                                      | **1**                       |
-| `transferOwnership`        | `address newOwnerAddress`                                                         | **2**                       |
 | `addLister`                | `address listerAddress`                                                           | **2**                       |
-| `removeLister`             | `address listerAddress`                                                           | **2**                       |
-| `setRateLockDuration`      | `uint256 durationInSeconds`                                                       | **2**                       |
-| `setMinimumPriceInQT`      | `uint256 qtAmount`                                                                | **2**                       |
-| `setRateSlippageTolerance` | `uint256 percent`                                                                 | **2**                       |
-| `resetLockPeriod`          |                                                                                   | **2**                       |
-| `setAutoPricingStatus`     | `bool isEnabled`                                                                  | **2**                       |
-| `setBTQTRate`              |                                                                                   | **2**                       |
+| `cancelListing`            | `uint256 listingID`                                                               | **2** and the listing owner |
+| `changeTreasuryAddress`    | `address newTreasuryAddress`                                                      | **1**                       |
 | `createListing`            | `address nftContractAddress` `uint256 nftID` `uint256 quantity` `uint256 btPrice` | **0**                       |
-| `setListingBTPrice`        | `uint256 listingID` `uint256 btAmount`                                            | **2** and the listing owner |
 | `purchase`                 | `uint256 listingID` `uint256 quantity`                                            | everyone                    |
+| `removeLister`             | `address listerAddress`                                                           | **2**                       |
+| `resetLockPeriod`          |                                                                                   | **2**                       |
 | `safePurchase`             | `uint256 listingID` `uint256 quantity` `uint256 forMaxPriceInQT`                  | everyone                    |
+| `setBTQTRate`              |                                                                                   | **2**                       |
+| `setListingBTPrice`        | `uint256 listingID` `uint256 btAmount`                                            | **2** and the listing owner |
+| `setMinimumPriceInQT`      | `uint256 qtAmount`                                                                | **2**                       |
+| `setRateLockDuration`      | `uint256 durationInSeconds`                                                       | **2**                       |
+| `setRatePeriodSystemStatus`| `bool isEnabled`                                                                  | **2**                       |
+| `setRateSlippageTolerance` | `uint256 percent`                                                                 | **2**                       |
+| `transferOwnership`        | `address newOwnerAddress`                                                         | **2**                       |
+
 
 ---
 ### Read Functions
-You can call the following functions to retrieve the necessary data from the contract:
+`getAllValidListings` function is the most usefull one when it comes to integrating the contract to your frontend. You can call the following functions to retrieve the other necessary data from the contract:
 
 | Function                   | Parameters                                       |
 |----------------------------|--------------------------------------------------|
@@ -112,7 +133,7 @@ You can call the following functions to retrieve the necessary data from the con
 | `getListingQuantityLeft`   | `uint256 listingID`                              |
 | `getReferenceBTQTRate`     |                                                  |
 | `getValidListingIDs`       |                                                  |
-| `isAutoPricingEnabled`     |                                                  |
+| `isRatePeriodSystemEnabled`|                                                  |
 | `isLister`                 | `address`                                        |
 
 ### Dependencies
