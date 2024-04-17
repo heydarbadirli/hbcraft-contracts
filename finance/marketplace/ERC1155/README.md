@@ -5,12 +5,12 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### Contract Introduction
-The contract lets you easily set up an ERC1155 store with a dynamic pricing mechanism. Thanks to this contract, you can list your assets priced in a `BASE_TOKEN` while allowing the buyers to purchase them in a `QUOTE_TOKEN`. The listing prices are automatically converted and displayed in the `QUOTE_TOKEN`.
+The contract lets you easily set up an ERC1155 store with a dynamic pricing mechanism. Thanks to this contract, you can list your assets priced in a `BASE_TOKEN` while allowing the buyers to purchase them in a `QUOTE_TOKEN`. The listing prices are automatically converted and displayed in the `QUOTE_TOKEN`, no matter if there decimal difference between `BASE_TOKEN` and `QUOTE_TOKEN`.
 
 ---
 ### Key Features
 #### 1. Oracle-less Price Updates
-The value of the `QUOTE_TOKEN` for price conversion is calculated without the need for an external oracle or off-chain scripts to update the prices on-chain. The only thing the contract needs is a Uniswap pool featuring `BASE_TOKEN`/`QUOTE_TOKEN` pair to determine the rate by checking the `QUOTE_TOKEN` and `BASE_TOKEN` balance of the pool.
+The value of `QUOTE_TOKEN` for price conversion is calculated without the need for an external oracle or off-chain scripts to update `QUOTE_TOKEN` token value on-chain. The only thing the contract needs is a Uniswap pool featuring `BASE_TOKEN`/`QUOTE_TOKEN` pair to determine the rate by checking the `QUOTE_TOKEN` and `BASE_TOKEN` balances of the pool. It is enough to provide `dexPoolAddress` when `ERC1155Store` contract is deployed.
 
 #### 2. Stable Pricing
 The contract also features additional methods to ensure stable pricing under varying conditions. There are 3 distinct rate periods to manage price stability.
@@ -32,7 +32,7 @@ function setRateLockDuration(uint256 durationInSeconds) external onlyContractOwn
 #### LOCK:
 - Initially, upon deployment, the contract enters this period by calculating the `BASE_TOKEN`/`QUOTE_TOKEN` rate and updating `lockedBTQTRate` and `lastBTQTRateLockTimestamp`.
 - This period lasts till `lastBTQTRateLockTimestamp` + `rateLockDuration`.
-- Any purchase made during this period updates `lastCheckedBTQTRate` to transition to `NEW_LOCK` period after the `LOCK` period ends.
+- Any purchase made during this period updates `lastCheckedBTQTRate` to transition to `NEW_LOCK` period after `LOCK` period ends.
 
 <img src="https://dl.dropboxusercontent.com/scl/fi/bkzhvggwphs4i9hozoi7a/Frame-13.png?rlkey=xcgsam2mo7snykjoj3925gk2y&st=xl7dqn59&dl=0" alt="Rate Periods" clear="left" width="675" height="398"/>
 
@@ -48,18 +48,28 @@ A period imitating the next `LOCK` period. During this period, `lastCheckedBTQTR
 #### FLOATING:
 - If no purchases are made during `LOCK` or `NEW_LOCK` periods, the contract enters this period.
 - In this period, if current rate is not `rateSlippageTolerance` percent higher or lower than `lastCheckedBTQTRate`, then `lastCheckedBTQTRate` acts as a reference rate.
-- If there is `rateSlippageTolerance` percent difference, then the current rate is rounded and the prices calculated with rounded current rate to ensure the stable pricing and not to get effected by the minor fluctuations.
+- If there is `rateSlippageTolerance` percent difference, then the current rate is rounded and the prices calculated with rounded current rate to ensure relatively stable pricing and not to get effected by the minor fluctuations.
+
+`rateSlippageTolerance` is set to 3 percent by default, but it can be changed via following commands:
+```solidity
+function setRateSlippageTolerance(uint256 percent) external onlyContractOwner;
+```
 
 <img src="https://dl.dropboxusercontent.com/scl/fi/mpfwgnuo1f0go91jx0cvq/Frame-18.png?rlkey=7ie0ctwx8guk405k93u82ufus&st=bbz66m95&dl=0" alt="Rate Periods" clear="left" width="675" height="398"/>
 
-
-Nevertheless, it is also possible to disable the rate periods and just update the rate by calling following functions if needed:
+Nevertheless, it is also possible to disable the rate periods and just update the rate in intervals with off-chain scripts if needed. For disabling the rate period system:
 ```solidity
 function setRatePeriodSystemStatus(bool isEnabled) external onlyContractOwner;
 ```
 
+For updating the rate:
 ```solidity
 function setBTQTRate() external onlyContractOwner;
+```
+
+If the contract is in FLOATING period for a while and you would like to switch back to `LOCK` period for a reason as if a purchase made, then following function can be called:
+```solidity
+function resetLockPeriod() external onlyContractOwner;
 ```
 
 
@@ -73,7 +83,7 @@ The contract implements an access control system with distinct roles. Functional
   ```
 
 
-##### :warning: Important Points to Consider
+#### :warning: Important Points to Consider
 **Contract Management**
 - `contractOwner` manages the store's overall functioning.
 - Only the listers have the ability to create a listing, while `contractOwner` can also cancel a listing if needed.
@@ -85,7 +95,7 @@ The contract implements an access control system with distinct roles. Functional
 **Listing**
 - If listing price in `QUOTE_TOKEN` is less than `minimumPriceInQT`, then it can not be listed. The current listings with price in `QUOTE_TOKEN` less than `minimumPriceInQT` is considered invalid, so not displayed.
 
-`minimumPriceInQT` is set to `1 * 10 ** QUOTE_TOKEN.decimals()`, but it can be change via following commands:
+`minimumPriceInQT` is set to `1 * 10 ** QUOTE_TOKEN.decimals()`, but it can be changed via following commands:
 ```solidity
 function setMinimumPriceInQT(uint256 qtAmount) external onlyContractOwner;
 ```
