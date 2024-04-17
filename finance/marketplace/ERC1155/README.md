@@ -88,3 +88,49 @@ Beside these, most functions are available only to `contractOwner` and you can f
 | `setListingBTPrice`        | `uint256 listingID` `uint256 btAmount`                                            | **2** and the listing owner |
 | `purchase`                 | `uint256 listingID` `uint256 quantity`                                            | everyone                    |
 | `safePurchase`             | `uint256 listingID` `uint256 quantity` `uint256 forMaxPriceInQT`                  | everyone                    |
+
+---
+### Read Functions
+You can call the following functions to retrieve the necessary data from the contract:
+
+| Function                   | Parameters                                       |
+|----------------------------|--------------------------------------------------|
+| `checkIfListingCompleted`  | `uint256 listingID`                              |
+| `checkIfListingValid`      | `uint256 listingID` `uint256 minimumPriceInBT`   |
+| `checkListingQTPrice`      | `uint256 listingID`                              |
+| `checkMinimumPriceInBT`    | `uint256 btPrice`                                |
+| `checkRatePeriod`          |                                                  |
+| `checkTotalListingCount`   |                                                  |
+| `convertBTPriceToQT`       | `uint256 btPrice`                                |
+| `convertToQT`              | `uint256 btAmount` `bool basedOnCurrentRate`     |
+| `getActiveListingIDs`      |                                                  |
+| `getAllListingProperties`  |                                                  |
+| `getAllValidListings`      |                                                  |
+| `getCurrentBTQTRate`       |                                                  |
+| `getListing`               | `uint256 listingID`                              |
+| `getListingProperties`     | `uint256 listingID`                              |
+| `getListingQuantityLeft`   | `uint256 listingID`                              |
+| `getReferenceBTQTRate`     |                                                  |
+| `getValidListingIDs`       |                                                  |
+| `isAutoPricingEnabled`     |                                                  |
+| `isLister`                 | `address`                                        |
+
+### Dependencies
+This project uses the Foundry framework, the OpenZeppelin contracts (v5.0.1) and Uniswap V3 contracts (v1.0.0). You need to install necessary dependencies.
+
+You can install the OpenZeppelin contracts and Uniswap V3 contracts by running:
+
+```bash
+$ forge install --no-commit OpenZeppelin/openzeppelin-contracts@v5.0.1
+$ forge install --no-commit Uniswap/v3-core@v1.0.0
+```
+
+---
+### License
+This work is published under the brand name **HB Craft** and is licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+You are authorized to use, modify, and distribute the work provided that appropriate credit is given to **HB Craft**, in any significant usage, you disclose the source of the work by providing a link to the original Apache License, and indicate if changes were made.
+
+The work is distributed under the License on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
