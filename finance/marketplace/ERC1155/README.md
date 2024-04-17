@@ -54,6 +54,14 @@ A period imitating the next `LOCK` period. During this period, `lastCheckedBTQTR
 
 
 Nevertheless, it is also possible to disable the rate periods and just update the rate by calling following functions if needed:
+```solidity
+function setRatePeriodSystemStatus(bool isEnabled) external onlyContractOwner;
+```
+
+```solidity
+function setBTQTRate() external onlyContractOwner;
+```
+
 
 ---
 #### Access Control
@@ -82,14 +90,7 @@ The contract implements an access control system with distinct roles. Functional
 function setMinimumPriceInQT(uint256 qtAmount) external onlyContractOwner;
 ```
 
-Most functions are available only to `contractOwner` and you can find the complete list below:
-```solidity
-function setRatePeriodSystemStatus(bool isEnabled) external onlyContractOwner;
-```
-
-```solidity
-function setBTQTRate() external onlyContractOwner;
-```
+Most adminstrative functions are available only to `contractOwner` and you can find the complete list below:
 
 | Function                   | Parameters                                                                        | Access Tier                 |
 |----------------------------|-----------------------------------------------------------------------------------|-----------------------------|
@@ -109,6 +110,8 @@ function setBTQTRate() external onlyContractOwner;
 | `setRateSlippageTolerance` | `uint256 percent`                                                                 | **2**                       |
 | `transferOwnership`        | `address newOwnerAddress`                                                         | **2**                       |
 
+
+> *Note:* The difference between `purchase` and `safePurchase` functions is that since `safePurchase` requires the `uint256 forMaxPriceInQT` argument, in the scenario of the buyer approving more than the needed amount of tokens and the listing price suddenly going up right before the purchase, the purchase won't be processed but reverted.
 
 ---
 ### Read Functions
@@ -145,6 +148,9 @@ You can install the OpenZeppelin contracts and Uniswap V3 contracts by running:
 $ forge install --no-commit OpenZeppelin/openzeppelin-contracts@v5.0.1
 $ forge install --no-commit Uniswap/v3-core@v1.0.0
 ```
+
+### Unit Test
+The repository includes a series of unit test samples to cover a variety of scenarios. These tests serve as a starting point for the deployers to play with, expand, and adapt to their specific needs ensuring the smart contract perform as intended before deploying.
 
 ---
 ### License
