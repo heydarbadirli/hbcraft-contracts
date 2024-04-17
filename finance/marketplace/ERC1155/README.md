@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### Contract Introduction
-The contract allows you to easily setup an ERC1155 store with dynamic pricing mechanism. Thanks to this contract you can list your assets priced in a `BASE_TOKEN` while letting the buyers to purchase them in a `QUOTE_TOKEN`. The listing prices are automatically converted and displayed in the `QUOTE_TOKEN`.
+The contract lets you easily set up an ERC1155 store with a dynamic pricing mechanism. Thanks to this contract, you can list your assets priced in a `BASE_TOKEN` while allowing the buyers to purchase them in a `QUOTE_TOKEN`. The listing prices are automatically converted and displayed in the `QUOTE_TOKEN`.
 
 ---
 ### Key Features
@@ -56,27 +56,21 @@ A period imitating the next `LOCK` period. During this period, `lastCheckedBTQTR
 #### Access Control
 The contract implements an access control system with distinct roles. Functionalities are restricted based on access levels. The system ensures that access to the execution of functions are strictly regulated.
 
-- **Enum `AccessTier`:** Defines the different access levels within the contract.
+**Enum `AccessTier`:** Different access levels within the contract.
   ```solidity
   enum AccessTier { LISTER, TREASURY, OWNER }
   ```
 
-| Name                          |  Tier  |
-|:------------------------------|--------|
-| `AccessTier.LISTER`           | **0**  |
-| `AccessTier.TREASURY`         | **1**  |
-| `AccessTier.OWNER`            | **2**  |
-
 
 ##### :warning: Important Points to Consider
-- The `contractOwner` manages the store's overall functioning.
-- But only the listers have the ability to create a listing, while `contractOwner` can also cancel a listing if needed.
-- No matter which listing is purchased, the payment is always made to the `treasury.`
+- `contractOwner` manages the store's overall functioning.
+- Only the listers have the ability to create a listing, while `contractOwner` can also cancel a listing if needed.
+- No matter which listing is purchased, the payment is always made to the `treasury`.
 - By default, `contractOwner` and `treasury` are both set to the deployer address.
-- Both `contractOwner` and `treasury` can be changed with the help of respective functions, so `treasury` can be set to a multi-sig wallet to protect the revenue while `contractOwner` freely manages the store.
+- Both `contractOwner` and `treasury` can be changed by calling the respective functions, so `treasury` can be set to a multi-sig wallet to protect the revenue while `contractOwner` freely manages the store.
 - Only `treasury` can change the `treasury` address.
-- Most functions are available only to the contract owner.
 
+Beside these, most functions are available only to `contractOwner` and you can find the complete list below:
 
 | Function                   | Parameters                                                                        | Access Tier                 |
 |----------------------------|-----------------------------------------------------------------------------------|-----------------------------|
@@ -94,35 +88,3 @@ The contract implements an access control system with distinct roles. Functional
 | `setListingBTPrice`        | `uint256 listingID` `uint256 btAmount`                                            | **2** and the listing owner |
 | `purchase`                 | `uint256 listingID` `uint256 quantity`                                            | everyone                    |
 | `safePurchase`             | `uint256 listingID` `uint256 quantity` `uint256 forMaxPriceInQT`                  | everyone                    |
-
-
-  "checkIfListingCompleted(uint256)": "10456d99",
-  "checkIfListingValid(uint256,uint256)": "10bcfbd4",
-  "checkListingQTPrice(uint256)": "0c9f9248",
-  "checkMinimumPriceInBT()": "360dde4a",
-  "checkRatePeriod()": "e46b7e03",
-  "checkTotalListingCount()": "72f721a4",
-  "contractOwner()": "ce606ee0",
-  "convertBTPriceToQT(uint256)": "6ca2e10b",
-  "convertToQT(uint256,bool)": "e40b42b4",
-  "getActiveListingIDs()": "37bfd1d6",
-  "getAllListingProperties()": "945bbe51",
-  "getAllValidListings()": "40bfa17e",
-  "getCurrentBTQTRate()": "a26be333",
-  "getListing(uint256)": "107a274a",
-  "getListingProperties(uint256)": "e0a03a51",
-  "getListingQuantityLeft(uint256)": "f033668d",
-  "getReferenceBTQTRate()": "f1255bec",
-  "getValidListingIDs()": "2cc375a7",
-  "isAutoPricingEnabled()": "f060b1e1",
-  "isLister(address)": "fc0e8c1b",
-  "lastBTQTRateLockTimestamp()": "9227f9e1",
-  "lockedBTQTRate()": "9938221e",
-  "minimumPriceInQT()": "c73c0a48",
-  "purchase(uint256,uint256)": "70876c98",
-  "rateLockDuration()": "3c6186a3",
-  "rateSlippageTolerance()": "f674f07b",
-  "removeLister(address)": "b07b5b69",
-  "safePurchase(uint256,uint256,uint256)": "6a377cf4",
-  "transferOwnership(address)": "f2fde38b",
-  "treasury()": "61d027b3"
