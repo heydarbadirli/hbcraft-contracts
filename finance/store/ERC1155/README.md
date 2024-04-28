@@ -111,12 +111,10 @@ Most adminstrative functions are available only to `contractOwner` and you can f
 | `cancelListing`                        | `uint256 listingID`                                                               | **2** and the listing owner |
 | `changeTreasuryAddress`                | `address newTreasuryAddress`                                                      | **1**                       |
 | `createListing`                        | `address nftContractAddress` `uint256 nftID` `uint256 quantity` `uint256 btPrice` | **0**                       |
-| `purchase`                             | `uint256 listingID` `uint256 quantity`                                            | everyone                    |
 | `removeLister`                         | `address listerAddress`                                                           | **2**                       |
 | `resetLockPeriod`                      |                                                                                   | **2**                       |
 | `safePurchase`                         | `uint256 listingID` `uint256 quantity` `uint256 forMaxPriceInQT`                  | everyone                    |
 | `setBTQTRate`                          |                                                                                   | **2**                       |
-| `setListingBTPrice`                    | `uint256 listingID` `uint256 btAmount`                                            | **2** and the listing owner |
 | `setMinimumPriceInQT`                  | `uint256 qtAmount`                                                                | **2**                       |
 | `setRateLockDuration`                  | `uint256 durationInSeconds`                                                       | **2**                       |
 | `setRatePeriodSystemStatus`            | `bool isEnabled`                                                                  | **2**                       |
@@ -140,7 +138,7 @@ Most adminstrative functions are available only to `contractOwner` and you can f
 | `checkRatePeriod`                      |                                                  |
 | `checkTotalListingCount`               |                                                  |
 | `convertBTPriceToQT`                   | `uint256 btPrice`                                |
-| `convertBTToQT`                          | `uint256 btAmount` `bool basedOnCurrentRate`     |
+| `convertBTToQT`                        | `uint256 btAmount` `bool basedOnCurrentRate`     |
 | `getActiveListingIDs`                  |                                                  |
 | `getAllListingProperties`              |                                                  |
 | `getAllValidListings`                  |                                                  |
