@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.0;
 
 import "./TestSetUp.t.sol";
 
@@ -43,31 +43,19 @@ contract AuxiliaryFunctions is TestSetUp {
         _createListing(user, nftID, quantity, btPriceWithoutDecimals);
     }
 
-    function _safePurchase(address user, uint256 listingID, uint256 quantity) internal {
+    function _safePurchase(address user, uint256 listingID, uint256 quantity, bool ifRevert) internal {
         bool isPrank = (user != address(this));
         uint256 forMaxPriceInQT = testStore.checkListingQTPrice(listingID);
 
         if (isPrank) vm.startPrank(user);
+        if (ifRevert) vm.expectRevert();
         testStore.safePurchase(listingID, quantity, forMaxPriceInQT);
         if (isPrank) vm.stopPrank();
     }
 
-    function _purchase(address user, uint256 listingID, uint256 quantity) internal {
-        bool isPrank = (user != address(this));
-
-        if (isPrank) vm.startPrank(user);
-        testStore.purchase(listingID, quantity);
-        if (isPrank) vm.stopPrank();
-    }
-
-    function _purchaseWithTest(
-        address user,
-        uint256 nftID,
-        uint256 listingID,
-        uint256 quantity,
-        bool ifRevert,
-        bool ifSafe
-    ) internal {
+    function _purchaseWithTest(address user, uint256 nftID, uint256 listingID, uint256 quantity, bool ifRevert)
+        internal
+    {
         uint256 listingPriceInQT = testStore.checkListingQTPrice(listingID);
 
         uint256 qtBalanceBeforeTreasury = quoteToken.balanceOf(treasury);
@@ -78,9 +66,7 @@ contract AuxiliaryFunctions is TestSetUp {
 
         uint256 listingQuantitiyBefore = testStore.getListingQuantityLeft(listingID);
 
-        if (ifRevert) vm.expectRevert();
-        if (ifSafe) _safePurchase(user, listingID, quantity);
-        else _purchase(user, listingID, quantity);
+        _safePurchase(user, listingID, quantity, ifRevert);
         if (ifRevert) return;
 
         assertEq(testNFT.balanceOf(lister, nftID), nftBalanceBeforeLister - quantity);

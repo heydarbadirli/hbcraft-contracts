@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
-pragma solidity 0.8.22;
+pragma solidity 0.8.20;
 
-import "../AccessControl.sol";
-import "./MathFunctions.sol";
+import "../safety-package/AccessControl.sol";
+import "../pricing-package/MathFunctions.sol";
+import "../pricing-package/UniswapOracle.sol";
 
-abstract contract ReadFunctions is AccessControl, MathFunctions {
+abstract contract ReadFunctions is AccessControl, MathFunctions, UniswapOracle {
     // ======================================
     // =         Listing Related            =
     // ======================================
@@ -14,7 +15,7 @@ abstract contract ReadFunctions is AccessControl, MathFunctions {
         return listings.length;
     }
 
-    function checkIfListingCompleted(uint256 listingID) external view returns (bool) {
+    function checkIfListingSoldOut(uint256 listingID) external view returns (bool) {
         if (listings[listingID].quantity == 0) return true;
         else return false;
     }
@@ -55,25 +56,27 @@ abstract contract ReadFunctions is AccessControl, MathFunctions {
     // ======================================
     // =           Price Related            =
     // ======================================
-    function _adjustBTAmount(uint256 btAmount) private view returns (uint256) {
-        if (btDecimalDifference == DecimalCount.LESS) return btAmount * DECIMAL_POINT_ADJUSTMENT;
-        else if (btDecimalDifference == DecimalCount.MORE) return btAmount / DECIMAL_POINT_ADJUSTMENT;
-        else return btAmount;
+    function convertBTToQT(uint256 btAmount, bool basedOnCurrentRate) public view returns (uint256) {
+        if (basedOnCurrentRate) {
+            uint32[] memory secondsAgos = new uint32[](2);
+            secondsAgos[0] = uint32(uniswapObserveSecondsAgo);
+            secondsAgos[1] = 0;
+
+            int56 uniswapObserveSecondsAgoTypeChanged = int56(int256(uniswapObserveSecondsAgo));
+
+            (int56[] memory tickCumulatives,) = DEX_POOL.observe(secondsAgos);
+            int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
+            int24 tick = int24(tickCumulativesDelta / uniswapObserveSecondsAgoTypeChanged);
+            // Always round to negative infinity
+            if (tickCumulativesDelta < 0 && (tickCumulativesDelta % uniswapObserveSecondsAgoTypeChanged != 0)) tick--;
+            return uint256(getQuoteAtTick(tick, uint128(btAmount), BASE_TOKEN_ADDRESS, QUOTE_TOKEN_ADDRESS));
+        } else {
+            return btAmount * getReferenceBTQTRate();
+        }
     }
 
     function getCurrentBTQTRate() public view returns (uint256) {
-        return FIXED_POINT_PRECISION * QUOTE_TOKEN.balanceOf(DEX_POOL_ADDRESS)
-            / _adjustBTAmount(BASE_TOKEN.balanceOf(DEX_POOL_ADDRESS));
-    }
-
-    function convertToQT(uint256 btAmount, bool basedOnCurrentRate) public view returns (uint256) {
-        /// ??? to be considered for optimization
-        if (basedOnCurrentRate) {
-            return _adjustBTAmount(btAmount) * QUOTE_TOKEN.balanceOf(DEX_POOL_ADDRESS)
-                / _adjustBTAmount(BASE_TOKEN.balanceOf(DEX_POOL_ADDRESS));
-        } else {
-            return _adjustBTAmount(btAmount) * getReferenceBTQTRate() / FIXED_POINT_PRECISION;
-        }
+        return convertBTToQT(1, true);
     }
 
     function checkRatePeriod() public view returns (RatePeriod) {
@@ -90,7 +93,8 @@ abstract contract ReadFunctions is AccessControl, MathFunctions {
     // To the rateDifference
     function _getAdjustedCurrentBTQTRate() private view returns (uint256) {
         uint256 currentRate = getCurrentBTQTRate();
-        uint256 tolerance = (FIXED_POINT_PRECISION * lastCheckedBTQTRate * rateSlippageTolerance / 100) / FIXED_POINT_PRECISION;
+        uint256 tolerance =
+            (FIXED_POINT_PRECISION * lastCheckedBTQTRate * rateSlippageTolerance / 100) / FIXED_POINT_PRECISION;
         uint256 upperLimit = lastCheckedBTQTRate + tolerance;
         uint256 lowerLimit = lastCheckedBTQTRate - tolerance;
 
@@ -114,13 +118,11 @@ abstract contract ReadFunctions is AccessControl, MathFunctions {
 
     function _roundPrice(uint256 price) private view returns (uint256) {
         uint256 digitCount = _findDigitCount(price);
-
-        uint256 qtDecimals = QUOTE_TOKEN.decimals();
-        if (digitCount <= qtDecimals + 1) return 0;
-        else return _roundNumber(price, digitCount - qtDecimals);
+        if (digitCount <= QT_DECIMAL_COUNT + 1) return 0;
+        else return _roundNumber(price, digitCount - QT_DECIMAL_COUNT);
     }
 
     function convertBTPriceToQT(uint256 btPrice) public view returns (uint256) {
-        return _roundPrice(convertToQT(btPrice, false));
+        return _roundPrice(convertBTToQT(btPrice, false));
     }
 }

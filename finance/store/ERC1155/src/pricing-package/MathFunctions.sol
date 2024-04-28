@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
-pragma solidity 0.8.22;
+pragma solidity 0.8.20;
 
 abstract contract MathFunctions {
     function _findDigitCount(uint256 number) internal pure returns (uint256) {

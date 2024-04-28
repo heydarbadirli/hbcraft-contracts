@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
-pragma solidity 0.8.22;
+pragma solidity 0.8.20;
 
-import "./StoreManager.sol";
+import "../store-package/StoreManager.sol";
 
 abstract contract AccessControl is StoreManager {
     address public contractOwner;

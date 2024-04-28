@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
-pragma solidity 0.8.22;
+pragma solidity 0.8.20;
 
-import "./contract-functions/WriteFunctions.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "../contract-package/WriteFunctions.sol";
 
 abstract contract ComplianceCheck is WriteFunctions {
     // ======================================
@@ -28,17 +28,18 @@ abstract contract ComplianceCheck is WriteFunctions {
     /// @dev Exception raised if listers try to list an NFT that has the same contract address and ID with an existing listing
     error RepetitiveListing(uint256 listingID);
     /// @dev Exception raised if listers try to create a listing with a BT price that, when converted to QT, is lower than the minimumPriceInQT
-    error PriceBelowMinRequirement(uint256 currentMinBTPriceReq);
+    error PriceBelowMinRequirement(uint256 minQTPriceReq);
+    error PriceInQTIncreased(uint256 listingID, uint256 requestedPriceInQT, uint256 currentPriceInQT);
     /// @dev Exception raised when 0 is provided as quantity
     error InvalidArgumentValue(string argument, uint256 minValue);
-    error PriceInQTIncreased(uint256 listingID, uint256 requestedPriceInQT, uint256 currentPriceInQT);
 
     // ======================================
     // =             Functions              =
     // ======================================
-    /// @dev Checks if BT price is higher than or equal to the minimumPriceInQT when  converted QT price
-    function checkMinimumPriceInBT() public view returns (uint256) {
-        return (10 ** BASE_TOKEN.decimals()) * FIXED_POINT_PRECISION / getReferenceBTQTRate();
+    /// @dev Checks if BT price is higher than or equal to the minimumPriceInQT when converted to QT price
+    function checkIfHigherThanMinimumPriceInQT(uint256 btPrice) public view returns (bool) {
+        if (convertBTPriceToQT(btPrice) >= minimumPriceInQT) return true;
+        return false;
     }
 
     /// @dev Checks if the lister holds quantity equal to or more than the Listing.quantity
@@ -67,12 +68,12 @@ abstract contract ComplianceCheck is WriteFunctions {
      *   - The lister doesn't hold the quantity equal to or more than the Listing.quantity
      *   - QT price of the listing is lower than the minimumPriceInQT
      */
-    function checkIfListingValid(uint256 listingID, uint256 minimumPriceInBT) public view returns (bool) {
+    function checkIfListingValid(uint256 listingID) public view returns (bool) {
         Listing memory targetListing = listings[listingID];
         if (
             targetListing.isActive
                 && _isStoreContractApprovedByLister(targetListing.listerAddress, targetListing.nftContractAddress)
-                && (targetListing.btPricePerFraction >= minimumPriceInBT)
+                && (checkIfHigherThanMinimumPriceInQT(targetListing.btPricePerFraction))
                 && _doesListerOwnEnoughNFTs(
                     targetListing.listerAddress,
                     targetListing.nftContractAddress,
@@ -88,9 +89,8 @@ abstract contract ComplianceCheck is WriteFunctions {
         uint256 count = 0;
 
         // Loop through all listings and check if they are valid
-        uint256 minimumPriceInBT = checkMinimumPriceInBT();
         for (uint256 i = activeListingStartIndex; i < listings.length; i++) {
-            if (checkIfListingValid(i, minimumPriceInBT)) {
+            if (checkIfListingValid(i)) {
                 tempActiveListings[count] = i;
                 count++;
             }
@@ -132,24 +132,13 @@ abstract contract ComplianceCheck is WriteFunctions {
         view
         returns (bool, uint256)
     {
-        bool isRepetitive;
-        uint256 repetiveListingID;
-
-        uint256[] memory activeListingIDs = getActiveListingIDs();
-
-        for (uint256 count = 0; count < activeListingIDs.length; count++) {
-            uint256 targetListingID = activeListingIDs[count];
-            Listing memory targetListing = listings[targetListingID];
-            if (targetListing.nftContractAddress == contractAddress && targetListing.nftID == nftID) {
-                if (ifRevert) revert RepetitiveListing(targetListingID);
-
-                isRepetitive = true;
-                repetiveListingID = targetListingID;
-            }
+        uint256 repetiveListingID = nftListingID[contractAddress][nftID];
+        if (repetiveListingID != 0) {
+            if (ifRevert) revert RepetitiveListing(repetiveListingID - 1);
+            return (true, repetiveListingID - 1);
+        } else {
+            return (false, listings.length);
         }
-
-        if (isRepetitive) return (true, repetiveListingID);
-        else return (false, listings.length);
     }
 
     function _checkListingExistence(uint256 listingID) private view {
@@ -171,8 +160,7 @@ abstract contract ComplianceCheck is WriteFunctions {
 
     modifier ifListingMeetsListingReqs(address nftContractAddress, uint256 nftID, uint256 quantity, uint256 btPrice) {
         if (quantity == 0) revert InvalidArgumentValue("quantity", 1);
-        uint256 minimumPriceInBT = checkMinimumPriceInBT();
-        if (btPrice < minimumPriceInBT) revert PriceBelowMinRequirement(minimumPriceInBT);
+        if (!checkIfHigherThanMinimumPriceInQT(btPrice)) revert PriceBelowMinRequirement(minimumPriceInQT);
         _isRepetitiveListing(nftContractAddress, nftID, true);
         if (!_doesListerOwnEnoughNFTs(msg.sender, nftContractAddress, nftID, quantity)) {
             revert InsufficientQuantity(quantity, IERC1155(nftContractAddress).balanceOf(msg.sender, nftID));
@@ -183,10 +171,9 @@ abstract contract ComplianceCheck is WriteFunctions {
     modifier ifPurchaseCallValid(uint256 listingID, uint256 quantity) {
         if (quantity == 0) revert InvalidArgumentValue("quantity", 1);
         _checkListingExistence(listingID);
-        uint256 minimumPriceInBT = checkMinimumPriceInBT();
-        if (!checkIfListingValid(listingID, minimumPriceInBT)) revert InvalidListing(listingID);
+        if (!checkIfListingValid(listingID)) revert InvalidListing(listingID);
         Listing memory targetListing = listings[listingID];
-        if (quantity > listings[listingID].quantity) revert InsufficientQuantity(quantity, targetListing.quantity);
+        if (quantity > targetListing.quantity) revert InsufficientQuantity(quantity, targetListing.quantity);
         _;
     }
 
@@ -221,10 +208,11 @@ abstract contract ComplianceCheck is WriteFunctions {
     event AddLister(address listerAddress);
     event RemoveLister(address listerAddress);
 
-    event SetListingBTPrice(uint256 listingID, uint256 btAmount);
+    event CreateListing(
+        uint256 indexed listingID, address indexed nftContractAddress, uint256 indexed nftID, uint256 quantity, uint256 btPrice
+    );
+    event CancelListing(uint256 indexed listingID);
+    event ListingSoldOut(uint256 indexed listingID);
 
-    event CreateListing(address nftContractAddress, uint256 nftID, uint256 quantity, uint256 btPrice);
-    event CancelListing(uint256 listingID);
-    
-    event Purchase(uint256 listingID, uint256 quantity, uint256 qtPrice);
+    event Purchase(address indexed buyerAddress, uint256 listingID, uint256 quantity, uint256 qtPrice);
 }

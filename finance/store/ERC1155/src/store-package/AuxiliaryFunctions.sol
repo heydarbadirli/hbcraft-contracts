@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
-pragma solidity 0.8.22;
+pragma solidity 0.8.20;
 
-import "../ComplianceCheck.sol";
+import "../safety-package/ComplianceCheck.sol";
 
 abstract contract AuxiliaryFunctions is ComplianceCheck {
     function getAllListingProperties()

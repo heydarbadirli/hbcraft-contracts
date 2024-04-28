@@ -1,7 +1,7 @@
 /*
 Copyright 2024 HB Craft
 
-Licensed under the Apache License, Version 2.0 (the "License");
+Licensed under the Apache License, Version 2.0 (the `"License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
@@ -16,27 +16,21 @@ limitations under the License.
 SPDX-License-Identifier: Apache-2.0
 */
 
-pragma solidity 0.8.22;
+pragma solidity 0.8.20;
 
-import "@uniswap/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 abstract contract StoreManager {
     address public immutable DEX_POOL_ADDRESS;
+    address internal immutable BASE_TOKEN_ADDRESS;
+    address internal immutable QUOTE_TOKEN_ADDRESS;
 
-    IERC20Metadata internal immutable BASE_TOKEN;
+    IUniswapV3Pool internal immutable DEX_POOL;
     IERC20Metadata internal immutable QUOTE_TOKEN;
 
     uint256 internal immutable FIXED_POINT_PRECISION;
-    uint256 internal immutable DECIMAL_POINT_ADJUSTMENT;
-
-    enum DecimalCount {
-        LESS,
-        SAME,
-        MORE
-    }
-
-    DecimalCount internal immutable btDecimalDifference;
+    uint256 internal immutable QT_DECIMAL_COUNT;
 
     /// @dev Listing.btPricePerFraction is converted into QT for purchase calls and listing price checks
     struct Listing {
@@ -49,6 +43,7 @@ abstract contract StoreManager {
     }
 
     Listing[] internal listings;
+    mapping(address => mapping(uint256 => uint256)) internal nftListingID;
     uint256 internal activeListingStartIndex = 0;
 
     bool public isRatePeriodSystemEnabled = true;
@@ -70,6 +65,9 @@ abstract contract StoreManager {
     uint256 internal lastCheckedBTQTRate;
     uint256 public minimumPriceInQT;
 
+    // For getting the rate from Uniswap
+    uint256 public uniswapObserveSecondsAgo;
+
     /**
      * @dev
      *     - The BT/QT rate is floating when the rate is not locked, and there is no lastCheckedBTQTRate to lock the rate
@@ -77,32 +75,26 @@ abstract contract StoreManager {
      *     - The default rateSlippageTolerance rate is 3%
      */
     uint256 public rateSlippageTolerance;
+    // /**
+    //   * @notice
+    //  */
+    // uint256 public minimumBTQTRate;
 
     constructor(address dexPoolAddress) {
         DEX_POOL_ADDRESS = dexPoolAddress;
-        IUniswapV3Pool dexPool = IUniswapV3Pool(dexPoolAddress);
+        DEX_POOL = IUniswapV3Pool(dexPoolAddress);
 
-        BASE_TOKEN = IERC20Metadata(dexPool.token0());
-        QUOTE_TOKEN = IERC20Metadata(dexPool.token1());
+        BASE_TOKEN_ADDRESS = DEX_POOL.token0();
+        QUOTE_TOKEN_ADDRESS = DEX_POOL.token1();
 
-        uint256 btDecimals = uint256(BASE_TOKEN.decimals());
-        uint256 qtDecimals = uint256(QUOTE_TOKEN.decimals());
+        QUOTE_TOKEN = IERC20Metadata(QUOTE_TOKEN_ADDRESS);
 
-        FIXED_POINT_PRECISION = 10 ** qtDecimals;
-
-        if (btDecimals > qtDecimals) {
-            DECIMAL_POINT_ADJUSTMENT = 10 ** (btDecimals - qtDecimals);
-            btDecimalDifference = DecimalCount.MORE;
-        } else if (btDecimals < qtDecimals) {
-            DECIMAL_POINT_ADJUSTMENT = 10 ** (qtDecimals - btDecimals);
-            btDecimalDifference = DecimalCount.LESS;
-        } else {
-            DECIMAL_POINT_ADJUSTMENT = 1;
-            btDecimalDifference = DecimalCount.SAME;
-        }
+        QT_DECIMAL_COUNT = uint256(QUOTE_TOKEN.decimals());
+        FIXED_POINT_PRECISION = 10 ** QT_DECIMAL_COUNT;
 
         rateLockDuration = 15 minutes;
         rateSlippageTolerance = 3;
-        minimumPriceInQT = 1 * FIXED_POINT_PRECISION;
+        minimumPriceInQT = FIXED_POINT_PRECISION;
+        uniswapObserveSecondsAgo = 10;
     }
 }

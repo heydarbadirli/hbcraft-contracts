@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.22;
+pragma solidity ^0.8.0;
 
 import "./AuxiliaryFunctions.t.sol";
 
@@ -34,7 +34,7 @@ contract TestScenarios is AuxiliaryFunctions {
         _createListingWithApproval(lister, 0, 10, 10);
 
         _approveToken(buyer, 10000);
-        _purchaseWithTest(buyer, 0, 0, 1, false, false);
+        _purchaseWithTest(buyer, 0, 0, 1, false);
     }
 
     function test_BuySafe() external {
@@ -42,7 +42,7 @@ contract TestScenarios is AuxiliaryFunctions {
         _createListingWithApproval(lister, 0, 10, 10);
 
         _approveToken(buyer, 10000);
-        _purchaseWithTest(buyer, 0, 0, 1, false, true);
+        _purchaseWithTest(buyer, 0, 0, 1, false);
     }
 
     function test_BuySafeHigherPricePrevented() external {
@@ -58,29 +58,20 @@ contract TestScenarios is AuxiliaryFunctions {
         vm.stopPrank();
     }
 
-    function test_BuyNonExistentListing() external {
-        testStore.addLister(lister);
-        _createListingWithApproval(lister, 0, 10, 10);
-
-        _approveToken(buyer, 10000);
-        vm.expectRevert();
-        _purchase(buyer, 1, 0);
-    }
-
     function test_BuyCancelledListing() external {
         testStore.addLister(lister);
         _createListingWithApproval(lister, 0, 10, 10);
         _cancelListing(lister, 0);
 
         _approveToken(buyer, 10000);
-        _purchaseWithTest(buyer, 0, 0, 1, true, false);
+        _purchaseWithTest(buyer, 0, 0, 1, true);
     }
 
     function test_BuyWithoutApproval() external {
         testStore.addLister(lister);
         _createListingWithApproval(lister, 0, 10, 10);
 
-        _purchaseWithTest(buyer, 0, 0, 1, true, false);
+        _purchaseWithTest(buyer, 0, 0, 1, true);
     }
 
     function test_BuyMultipleUsers() external {
@@ -88,10 +79,10 @@ contract TestScenarios is AuxiliaryFunctions {
         _createListingWithApproval(lister, 0, 10, 10);
 
         _approveToken(buyer, 10000);
-        _purchaseWithTest(buyer, 0, 0, 1, false, false);
+        _purchaseWithTest(buyer, 0, 0, 1, false);
 
         _approveToken(buyer2, 10000);
-        _purchaseWithTest(buyer2, 0, 0, 2, false, false);
+        _purchaseWithTest(buyer2, 0, 0, 2, false);
     }
 
     function test_BuyCompletedListing() external {
@@ -99,13 +90,13 @@ contract TestScenarios is AuxiliaryFunctions {
         _createListingWithApproval(lister, 0, 10, 10);
 
         _approveToken(buyer, 10000);
-        _purchaseWithTest(buyer, 0, 0, 10, false, false);
+        _purchaseWithTest(buyer, 0, 0, 10, false);
 
         _approveToken(buyer2, 10000);
-        _purchaseWithTest(buyer2, 0, 0, 2, true, false);
+        _purchaseWithTest(buyer2, 0, 0, 2, true);
     }
 
-    function test_BuyAferListerTransferedNFTs() external {
+    function test_BuyAfterListerTransferedNFTs() external {
         testStore.addLister(lister);
         _createListingWithApproval(lister, 0, 10, 10);
 
@@ -114,7 +105,7 @@ contract TestScenarios is AuxiliaryFunctions {
         vm.stopPrank();
 
         _approveToken(buyer, 10000);
-        _purchaseWithTest(buyer, 0, 0, 1, true, false);
+        _purchaseWithTest(buyer, 0, 0, 1, true);
     }
 
     function test_GasUsage() external {
@@ -126,12 +117,12 @@ contract TestScenarios is AuxiliaryFunctions {
 
         _approveToken(buyer, 1000000);
         for (uint256 x = 0; x < 150; x++) {
-            _purchaseWithTest(buyer, x, x, 1, false, false);
+            _purchaseWithTest(buyer, x, x, 1, false);
         }
 
         _approveToken(buyer2, 1000000);
         for (uint256 x = 0; x < 150; x++) {
-            _purchaseWithTest(buyer2, x, x, 1, false, false);
+            _purchaseWithTest(buyer2, x, x, 1, false);
         }
 
         uint256[] memory myList = testStore.getValidListingIDs();
@@ -151,7 +142,7 @@ contract TestScenarios is AuxiliaryFunctions {
 
         _approveToken(buyer3, 1000000);
         for (uint256 x = 90; x < 150; x++) {
-            _purchaseWithTest(buyer2, x, x, 2, false, false);
+            _purchaseWithTest(buyer2, x, x, 2, false);
         }
         (litingIDs, nftContractAddresses, nftIDs, quantities, prices) = testStore.getAllValidListings();
     }

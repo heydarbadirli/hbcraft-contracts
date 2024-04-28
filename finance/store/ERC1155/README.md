@@ -1,7 +1,7 @@
 <img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="200" height="200"/>
 
 # ERC1155 Store with Dynamic Pricing by HB Craft
-![version](https://img.shields.io/badge/version-1.0.0-blue)
+![version](https://img.shields.io/badge/version-1.1.0-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### Contract Introduction
@@ -9,8 +9,8 @@ The contract lets you easily set up an ERC1155 store with a dynamic pricing mech
 
 ---
 ### Key Features
-#### 1. Oracle-less Price Updates
-The value of `QUOTE_TOKEN` for price conversion is calculated without the need for an external oracle or off-chain scripts to update `QUOTE_TOKEN` token value on-chain. The only thing the contract needs is a Uniswap pool featuring `BASE_TOKEN`/`QUOTE_TOKEN` pair to determine the rate by checking the `QUOTE_TOKEN` and `BASE_TOKEN` balances of the pool. It is enough to provide `dexPoolAddress` when `ERC1155Store` contract is deployed.
+#### 1. Uniswap TWAP
+The Contract uses the Uniswap protocol's Time-Weighted Average Price (TWAP) feature to determine the exchange rate. The only thing the contract needs is a Uniswap pool featuring `BASE_TOKEN`/`QUOTE_TOKEN` pair to determine the rate. It is enough to provide `dexPoolAddress` when `ERC1155Store` contract is deployed.
 
 #### 2. Stable Pricing
 The contract also features additional methods to ensure stable pricing under varying conditions. There are 3 distinct rate periods to manage price stability.
@@ -105,23 +105,23 @@ function setMinimumPriceInQT(uint256 qtAmount) external onlyContractOwner;
 
 Most adminstrative functions are available only to `contractOwner` and you can find the complete list below:
 
-| Function                   | Parameters                                                                        | Access Tier                 |
-|----------------------------|-----------------------------------------------------------------------------------|-----------------------------|
-| `addLister`                | `address listerAddress`                                                           | **2**                       |
-| `cancelListing`            | `uint256 listingID`                                                               | **2** and the listing owner |
-| `changeTreasuryAddress`    | `address newTreasuryAddress`                                                      | **1**                       |
-| `createListing`            | `address nftContractAddress` `uint256 nftID` `uint256 quantity` `uint256 btPrice` | **0**                       |
-| `purchase`                 | `uint256 listingID` `uint256 quantity`                                            | everyone                    |
-| `removeLister`             | `address listerAddress`                                                           | **2**                       |
-| `resetLockPeriod`          |                                                                                   | **2**                       |
-| `safePurchase`             | `uint256 listingID` `uint256 quantity` `uint256 forMaxPriceInQT`                  | everyone                    |
-| `setBTQTRate`              |                                                                                   | **2**                       |
-| `setListingBTPrice`        | `uint256 listingID` `uint256 btAmount`                                            | **2** and the listing owner |
-| `setMinimumPriceInQT`      | `uint256 qtAmount`                                                                | **2**                       |
-| `setRateLockDuration`      | `uint256 durationInSeconds`                                                       | **2**                       |
-| `setRatePeriodSystemStatus`| `bool isEnabled`                                                                  | **2**                       |
-| `setRateSlippageTolerance` | `uint256 percent`                                                                 | **2**                       |
-| `transferOwnership`        | `address newOwnerAddress`                                                         | **2**                       |
+| Function                               | Parameters                                                                        | Access Tier                 |
+|----------------------------------------|-----------------------------------------------------------------------------------|-----------------------------|
+| `addLister`                            | `address listerAddress`                                                           | **2**                       |
+| `cancelListing`                        | `uint256 listingID`                                                               | **2** and the listing owner |
+| `changeTreasuryAddress`                | `address newTreasuryAddress`                                                      | **1**                       |
+| `createListing`                        | `address nftContractAddress` `uint256 nftID` `uint256 quantity` `uint256 btPrice` | **0**                       |
+| `purchase`                             | `uint256 listingID` `uint256 quantity`                                            | everyone                    |
+| `removeLister`                         | `address listerAddress`                                                           | **2**                       |
+| `resetLockPeriod`                      |                                                                                   | **2**                       |
+| `safePurchase`                         | `uint256 listingID` `uint256 quantity` `uint256 forMaxPriceInQT`                  | everyone                    |
+| `setBTQTRate`                          |                                                                                   | **2**                       |
+| `setListingBTPrice`                    | `uint256 listingID` `uint256 btAmount`                                            | **2** and the listing owner |
+| `setMinimumPriceInQT`                  | `uint256 qtAmount`                                                                | **2**                       |
+| `setRateLockDuration`                  | `uint256 durationInSeconds`                                                       | **2**                       |
+| `setRatePeriodSystemStatus`            | `bool isEnabled`                                                                  | **2**                       |
+| `setRateSlippageTolerance`             | `uint256 percent`                                                                 | **2**                       |
+| `transferOwnership`                    | `address newOwnerAddress`                                                         | **2**                       |
 
 
 > *Note:* The difference between `purchase` and `safePurchase` functions is that since `safePurchase` requires the `uint256 forMaxPriceInQT` argument, in the scenario of the buyer approving more than the needed amount of tokens and the listing price suddenly going up right before the purchase, the purchase won't be processed but reverted.
@@ -130,27 +130,28 @@ Most adminstrative functions are available only to `contractOwner` and you can f
 ### Read Functions
 `getAllValidListings` function is the most usefull one when it comes to integrating the contract to your frontend. You can call the following functions to retrieve the other necessary data from the contract:
 
-| Function                   | Parameters                                       |
-|----------------------------|--------------------------------------------------|
-| `checkIfListingCompleted`  | `uint256 listingID`                              |
-| `checkIfListingValid`      | `uint256 listingID` `uint256 minimumPriceInBT`   |
-| `checkListingQTPrice`      | `uint256 listingID`                              |
-| `checkMinimumPriceInBT`    | `uint256 btPrice`                                |
-| `checkRatePeriod`          |                                                  |
-| `checkTotalListingCount`   |                                                  |
-| `convertBTPriceToQT`       | `uint256 btPrice`                                |
-| `convertToQT`              | `uint256 btAmount` `bool basedOnCurrentRate`     |
-| `getActiveListingIDs`      |                                                  |
-| `getAllListingProperties`  |                                                  |
-| `getAllValidListings`      |                                                  |
-| `getCurrentBTQTRate`       |                                                  |
-| `getListing`               | `uint256 listingID`                              |
-| `getListingProperties`     | `uint256 listingID`                              |
-| `getListingQuantityLeft`   | `uint256 listingID`                              |
-| `getReferenceBTQTRate`     |                                                  |
-| `getValidListingIDs`       |                                                  |
-| `isRatePeriodSystemEnabled`|                                                  |
-| `isLister`                 | `address`                                        |
+| Function                               | Parameters                                       |
+|----------------------------------------|--------------------------------------------------|
+| `checkIfHigherThanMinimumPriceInQT`    | `uint256 btPrice`                                |
+| `checkIfListingSoldOut`                | `uint256 listingID`                              |
+| `checkIfListingValid`                  | `uint256 listingID` `uint256 minimumPriceInBT`   |
+| `checkListingQTPrice`                  | `uint256 listingID`                              |
+| `checkMinimumPriceInBT`                | `uint256 btPrice`                                |
+| `checkRatePeriod`                      |                                                  |
+| `checkTotalListingCount`               |                                                  |
+| `convertBTPriceToQT`                   | `uint256 btPrice`                                |
+| `convertBTToQT`                          | `uint256 btAmount` `bool basedOnCurrentRate`     |
+| `getActiveListingIDs`                  |                                                  |
+| `getAllListingProperties`              |                                                  |
+| `getAllValidListings`                  |                                                  |
+| `getCurrentBTQTRate`                   |                                                  |
+| `getListing`                           | `uint256 listingID`                              |
+| `getListingProperties`                 | `uint256 listingID`                              |
+| `getListingQuantityLeft`               | `uint256 listingID`                              |
+| `getReferenceBTQTRate`                 |                                                  |
+| `getValidListingIDs`                   |                                                  |
+| `isRatePeriodSystemEnabled`            |                                                  |
+| `isLister`                             | `address`                                        |
 
 ### Dependencies
 This project uses the Foundry framework, the OpenZeppelin contracts (v5.0.1) and Uniswap V3 contracts (v1.0.0). You need to install necessary dependencies.
@@ -162,8 +163,12 @@ $ forge install --no-commit OpenZeppelin/openzeppelin-contracts@v5.0.1
 $ forge install --no-commit Uniswap/v3-core@v1.0.0
 ```
 
-### Unit Test
-The repository includes a series of unit test samples to cover a variety of scenarios. These tests serve as a starting point for the deployers to play with, expand, and adapt to their specific needs ensuring the smart contract perform as intended before deploying.
+### Unit Tests
+The repository includes a series of unit test samples to cover a variety of scenarios. These tests serve as a starting point for the deployers to play with, expand, and adapt to their specific needs ensuring the smart contract perform as intended before deploying. The tests requires a forked environment to run. The following command can be used for running the tests in a forked environment:
+
+```bash
+$ forge test -vvvv --fork-url <your_rpc_url>
+```
 
 ---
 ### License

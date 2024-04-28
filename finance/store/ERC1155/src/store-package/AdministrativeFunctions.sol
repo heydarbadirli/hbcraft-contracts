@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 HB Craft.
 
-pragma solidity 0.8.22;
+pragma solidity 0.8.20;
 
-import "../contract-functions/AuxiliaryFunctions.sol";
+import "./AuxiliaryFunctions.sol";
 
 abstract contract AdministrativeFunctions is AuxiliaryFunctions {
     // ======================================
@@ -11,19 +11,22 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
     // ======================================
     function transferOwnership(address newOwnerAddress) external onlyContractOwner {
         if (contractOwner == newOwnerAddress) revert ValueReassignment();
+        require(newOwnerAddress != address(0), "New contract owner can not be zero");
         contractOwner = newOwnerAddress;
         emit TransferOwnership(newOwnerAddress);
     }
 
     function changeTreasuryAddress(address newTreasuryAddress) external onlyTreasury {
         if (treasury == newTreasuryAddress) revert ValueReassignment();
+        require(newTreasuryAddress != address(0), "New treasury can not be zero");
         treasury = newTreasuryAddress;
         emit ChangeTreasuryAddress(newTreasuryAddress);
     }
 
     function addLister(address listerAddress) external onlyContractOwner {
         if (isLister[listerAddress]) revert ValueReassignment();
-        else isLister[listerAddress] = true;
+        require(listerAddress != address(0), "Lister can not be zero");
+        isLister[listerAddress] = true;
         emit AddLister(listerAddress);
     }
 
@@ -43,12 +46,15 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
         ifListingMeetsListingReqs(nftContractAddress, nftID, quantity, btPrice)
     {
         listings.push(Listing(msg.sender, nftContractAddress, nftID, quantity, btPrice, true));
-        emit CreateListing(nftContractAddress, nftID, quantity, btPrice);
+        nftListingID[nftContractAddress][nftID] = listings.length;
+        emit CreateListing(listings.length, nftContractAddress, nftID, quantity, btPrice);
     }
 
     function cancelListing(uint256 listingID) external ifListingExists(listingID) ifListingOwner(listingID) {
-        if (!listings[listingID].isActive) revert ValueReassignment();
+        Listing memory targetListing = listings[listingID];
+        if (!targetListing.isActive) revert ValueReassignment();
         listings[listingID].isActive = false;
+        nftListingID[targetListing.nftContractAddress][targetListing.nftID] = 0;
         uint256[] memory activeListingIDs = getActiveListingIDs();
         if (activeListingIDs.length != 0) activeListingStartIndex = activeListingIDs[0];
         emit CancelListing(listingID);
@@ -57,12 +63,8 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
     // ======================================
     // =          Pricing Related           =
     // ======================================
-    function setListingBTPrice(uint256 listingID, uint256 btAmount) external ifListingOwner(listingID) {
-        listings[listingID].btPricePerFraction = btAmount;
-        emit SetListingBTPrice(listingID, btAmount);
-    }
-
     function setMinimumPriceInQT(uint256 qtAmount) external onlyContractOwner {
+        if (qtAmount < FIXED_POINT_PRECISION) revert InvalidArgumentValue("qtAmount", FIXED_POINT_PRECISION);
         minimumPriceInQT = qtAmount;
         emit SetMinimumPriceInQT(qtAmount);
     }
