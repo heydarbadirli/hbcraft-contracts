@@ -32,8 +32,8 @@ abstract contract ComplianceCheck is WriteFunctions {
     error PriceInQTIncreased(uint256 listingID, uint256 requestedPriceInQT, uint256 currentPriceInQT);
     /// @dev Exception raised when 0 is provided as quantity
     error InvalidArgumentValue(string argument, uint256 minValue);
-    /// @dev Exception raised when the referance rate is higher than maximumAcceptableRate
-    error StoreIsClosed(uint256 maxAcceptableRate, uint256 currentRate);
+    /// @dev Exception raised when the referance rate is lower than minimumAcceptableRate
+    error StoreIsClosed(uint256 minAcceptableRate, uint256 currentRate);
 
     // ======================================
     // =             Functions              =
@@ -179,9 +179,9 @@ abstract contract ComplianceCheck is WriteFunctions {
         _;
     }
 
-    modifier ifRateBelowMaxAcceptableRate() {
+    modifier ifRateOverMinAcceptableRate() {
         uint256 referenceRate = getReferenceBTQTRate();
-        if(referenceRate > maximumAcceptableRate) revert StoreIsClosed(maximumAcceptableRate, referenceRate);
+        if(referenceRate < minimumAcceptableRate) revert StoreIsClosed(minimumAcceptableRate, referenceRate);
         _;
     }
 
@@ -211,7 +211,7 @@ abstract contract ComplianceCheck is WriteFunctions {
 
     event SetRateLockDuration(uint256 durationInSeconds);
     event SetMinimumPriceInQT(uint256 qtAmount);
-    event SetMaximumAcceptableRate(uint256 newMinRate);
+    event SetMinimumAcceptableRate(uint256 newMinRate);
     event SetRateSlippageTolerance(uint256 percent);
 
     event AddLister(address listerAddress);

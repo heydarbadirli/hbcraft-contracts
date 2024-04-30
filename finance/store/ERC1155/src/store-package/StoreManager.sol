@@ -63,7 +63,7 @@ abstract contract StoreManager {
     uint256 public lastBTQTRateLockTimestamp;
     uint256 public lockedBTQTRate;
     uint256 internal lastCheckedBTQTRate;
-    uint256 public maximumAcceptableRate;
+    uint256 public minimumAcceptableRate;
     uint256 public minimumPriceInQT;
 
     // For getting the rate from Uniswap
@@ -81,7 +81,7 @@ abstract contract StoreManager {
     //  */
     // uint256 public minimumBTQTRate;
 
-    constructor(address dexPoolAddress, uint256 _maximumAcceptableRate) {
+    constructor(address dexPoolAddress, uint256 _minimumAcceptableRate) {
         DEX_POOL_ADDRESS = dexPoolAddress;
         DEX_POOL = IUniswapV3Pool(dexPoolAddress);
 
@@ -96,7 +96,7 @@ abstract contract StoreManager {
         rateLockDuration = 15 minutes;
         rateSlippageTolerance = 3;
         minimumPriceInQT = FIXED_POINT_PRECISION;
-        maximumAcceptableRate = _maximumAcceptableRate;
+        minimumAcceptableRate = _minimumAcceptableRate;
         uniswapObserveSecondsAgo = 10;
     }
 }

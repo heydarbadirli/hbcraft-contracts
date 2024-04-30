@@ -41,7 +41,7 @@ contract TestScenarios is AuxiliaryFunctions {
         testStore.addLister(lister);
         _createListingWithApproval(lister, 0, 10, 10);
 
-        testStore.setMaximumAcceptableRate(10000000000000);
+        testStore.setMinimumAcceptableRate(90000000000000);
 
         _approveToken(buyer, 10000);
         _purchaseWithTest(buyer, 0, 0, 1, false);

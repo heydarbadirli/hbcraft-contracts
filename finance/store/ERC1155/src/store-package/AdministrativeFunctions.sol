@@ -69,9 +69,9 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
         emit SetMinimumPriceInQT(qtAmount);
     }
 
-    function setMaximumAcceptableRate(uint256 newMaxRate) external onlyContractOwner {
-        maximumAcceptableRate = newMaxRate;
-        emit SetMaximumAcceptableRate(newMaxRate);
+    function setMinimumAcceptableRate(uint256 newMinRate) external onlyContractOwner {
+        minimumAcceptableRate = newMinRate;
+        emit SetMinimumAcceptableRate(newMinRate);
     }
 
     function setRateSlippageTolerance(uint256 percent) external onlyContractOwner {
