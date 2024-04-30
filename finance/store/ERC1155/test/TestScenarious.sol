@@ -37,7 +37,17 @@ contract TestScenarios is AuxiliaryFunctions {
         _purchaseWithTest(buyer, 0, 0, 1, false);
     }
 
-    function test_BuySafe() external {
+    function testFail_RateHigherThanAcceptableMaxRate() external {
+        testStore.addLister(lister);
+        _createListingWithApproval(lister, 0, 10, 10);
+
+        testStore.setMaximumAcceptableRate(10000000000000);
+
+        _approveToken(buyer, 10000);
+        _purchaseWithTest(buyer, 0, 0, 1, false);
+    }
+
+        function test_BuySafe() external {
         testStore.addLister(lister);
         _createListingWithApproval(lister, 0, 10, 10);
 

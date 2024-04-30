@@ -22,6 +22,7 @@ abstract contract PurchaseFunctions is AuxiliaryFunctions, ReentrancyGuard {
     function safePurchase(uint256 listingID, uint256 quantity, uint256 forMaxPriceInQT)
         external
         nonReentrant
+        ifRateBelowMaxAcceptableRate
         ifPurchaseCallValid(listingID, quantity)
     {
         Listing memory targetListing = listings[listingID];

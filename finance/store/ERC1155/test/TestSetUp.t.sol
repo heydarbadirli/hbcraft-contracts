@@ -22,6 +22,7 @@ contract TestSetUp is Test {
     uint256 qtDecimals = 18;
     uint256 btDecimals = 6;
     uint256 buyerBalance = 100000;
+    uint256 startMaxRate = 90000000000000;
 
     address lister = address(50);
     address buyer = address(100);
@@ -39,7 +40,7 @@ contract TestSetUp is Test {
         quoteToken.transfer(buyer3, buyerBalance * (10 ** qtDecimals));
         vm.stopPrank();
 
-        testStore = new ERC1155Store(dexPoolAddress);
+        testStore = new ERC1155Store(dexPoolAddress, startMaxRate);
         testStore.changeTreasuryAddress(treasury);
 
         testNFT = new MockNFT(lister);
