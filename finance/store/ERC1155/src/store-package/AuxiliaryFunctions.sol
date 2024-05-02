@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-2.0
 // Copyright 2024 HB Craft.
 
 pragma solidity 0.8.20;
@@ -38,6 +38,8 @@ abstract contract AuxiliaryFunctions is ComplianceCheck {
         view
         returns (uint256[] memory, address[] memory, uint256[] memory, uint256[] memory, uint256[] memory)
     {
+        uint256 referanceRate = getReferenceBTQTRate();
+
         uint256[] memory activeListingIDs = getValidListingIDs();
         uint256 activeListingCount = activeListingIDs.length;
 
@@ -55,7 +57,7 @@ abstract contract AuxiliaryFunctions is ComplianceCheck {
             nftContractAddresses[count] = targetListing.nftContractAddress;
             nftIDs[count] = targetListing.nftID;
             quantities[count] = targetListing.quantity;
-            prices[count] = convertBTPriceToQT(targetListing.btPricePerFraction);
+            prices[count] = _convertBTPriceToQT(targetListing.btPricePerFraction, referanceRate);
         }
 
         return (listingIDs, nftContractAddresses, nftIDs, quantities, prices);

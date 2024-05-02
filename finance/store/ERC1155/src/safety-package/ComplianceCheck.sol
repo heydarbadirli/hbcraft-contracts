@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-2.0
 // Copyright 2024 HB Craft.
 
 pragma solidity 0.8.20;
@@ -38,9 +38,14 @@ abstract contract ComplianceCheck is WriteFunctions {
     // ======================================
     // =             Functions              =
     // ======================================
+    /// @dev Checks if the referance rate is lower than minimumAcceptableRate
+    function _checkIfRateOverMinAcceptableRate(uint256 referenceRate) internal view {
+        if (referenceRate < minimumAcceptableRate) revert StoreIsClosed(minimumAcceptableRate, referenceRate);
+    }
+
     /// @dev Checks if BT price is higher than or equal to the minimumPriceInQT when converted to QT price
-    function checkIfHigherThanMinimumPriceInQT(uint256 btPrice) public view returns (bool) {
-        if (convertBTPriceToQT(btPrice) >= minimumPriceInQT) return true;
+    function _checkIfHigherThanMinimumPriceInQT(uint256 btPrice, uint256 referanceRate) internal view returns (bool) {
+        if (_convertBTPriceToQT(btPrice, referanceRate) >= minimumPriceInQT) return true;
         return false;
     }
 
@@ -70,12 +75,12 @@ abstract contract ComplianceCheck is WriteFunctions {
      *   - The lister doesn't hold the quantity equal to or more than the Listing.quantity
      *   - QT price of the listing is lower than the minimumPriceInQT
      */
-    function checkIfListingValid(uint256 listingID) public view returns (bool) {
+    function _checkIfListingValid(uint256 listingID, uint256 referanceRate) internal view returns (bool) {
         Listing memory targetListing = listings[listingID];
         if (
             targetListing.isActive
                 && _isStoreContractApprovedByLister(targetListing.listerAddress, targetListing.nftContractAddress)
-                && (checkIfHigherThanMinimumPriceInQT(targetListing.btPricePerFraction))
+                && (_checkIfHigherThanMinimumPriceInQT(targetListing.btPricePerFraction, referanceRate))
                 && _doesListerOwnEnoughNFTs(
                     targetListing.listerAddress,
                     targetListing.nftContractAddress,
@@ -86,13 +91,19 @@ abstract contract ComplianceCheck is WriteFunctions {
         else return false;
     }
 
+    function checkIfListingValid(uint256 listingID) external view returns (bool) {
+        return _checkIfListingValid(listingID, getReferenceBTQTRate());
+    }
+
     function getValidListingIDs() public view returns (uint256[] memory) {
+        uint256 referanceRate = getReferenceBTQTRate();
+
         uint256[] memory tempActiveListings = new uint256[](listings.length);
         uint256 count = 0;
 
         // Loop through all listings and check if they are valid
         for (uint256 i = activeListingStartIndex; i < listings.length; i++) {
-            if (checkIfListingValid(i)) {
+            if (_checkIfListingValid(i, referanceRate)) {
                 tempActiveListings[count] = i;
                 count++;
             }
@@ -162,7 +173,12 @@ abstract contract ComplianceCheck is WriteFunctions {
 
     modifier ifListingMeetsListingReqs(address nftContractAddress, uint256 nftID, uint256 quantity, uint256 btPrice) {
         if (quantity == 0) revert InvalidArgumentValue("quantity", 1);
-        if (!checkIfHigherThanMinimumPriceInQT(btPrice)) revert PriceBelowMinRequirement(minimumPriceInQT);
+
+        uint256 referanceRate = getReferenceBTQTRate();
+        if (!_checkIfHigherThanMinimumPriceInQT(btPrice, referanceRate)) {
+            revert PriceBelowMinRequirement(minimumPriceInQT);
+        }
+
         _isRepetitiveListing(nftContractAddress, nftID, true);
         if (!_doesListerOwnEnoughNFTs(msg.sender, nftContractAddress, nftID, quantity)) {
             revert InsufficientQuantity(quantity, IERC1155(nftContractAddress).balanceOf(msg.sender, nftID));
@@ -173,15 +189,8 @@ abstract contract ComplianceCheck is WriteFunctions {
     modifier ifPurchaseCallValid(uint256 listingID, uint256 quantity) {
         if (quantity == 0) revert InvalidArgumentValue("quantity", 1);
         _checkListingExistence(listingID);
-        if (!checkIfListingValid(listingID)) revert InvalidListing(listingID);
         Listing memory targetListing = listings[listingID];
         if (quantity > targetListing.quantity) revert InsufficientQuantity(quantity, targetListing.quantity);
-        _;
-    }
-
-    modifier ifRateOverMinAcceptableRate() {
-        uint256 referenceRate = getReferenceBTQTRate();
-        if(referenceRate < minimumAcceptableRate) revert StoreIsClosed(minimumAcceptableRate, referenceRate);
         _;
     }
 
@@ -213,12 +222,17 @@ abstract contract ComplianceCheck is WriteFunctions {
     event SetMinimumPriceInQT(uint256 qtAmount);
     event SetMinimumAcceptableRate(uint256 newMinRate);
     event SetRateSlippageTolerance(uint256 percent);
+    event SetUniswapObservationTime(uint256 inSeconds);
 
     event AddLister(address listerAddress);
     event RemoveLister(address listerAddress);
 
     event CreateListing(
-        uint256 indexed listingID, address indexed nftContractAddress, uint256 indexed nftID, uint256 quantity, uint256 btPrice
+        uint256 indexed listingID,
+        address indexed nftContractAddress,
+        uint256 indexed nftID,
+        uint256 quantity,
+        uint256 btPrice
     );
     event CancelListing(uint256 indexed listingID);
     event ListingSoldOut(uint256 indexed listingID);

@@ -47,7 +47,7 @@ contract TestScenarios is AuxiliaryFunctions {
         _purchaseWithTest(buyer, 0, 0, 1, false);
     }
 
-        function test_BuySafe() external {
+    function test_BuySafe() external {
         testStore.addLister(lister);
         _createListingWithApproval(lister, 0, 10, 10);
 

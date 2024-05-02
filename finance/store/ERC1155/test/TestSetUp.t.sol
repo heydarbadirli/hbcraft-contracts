@@ -42,6 +42,7 @@ contract TestSetUp is Test {
 
         testStore = new ERC1155Store(dexPoolAddress, startMinRate);
         testStore.changeTreasuryAddress(treasury);
+        console.log(testStore.getCurrentBTQTRate());
 
         testNFT = new MockNFT(lister);
     }

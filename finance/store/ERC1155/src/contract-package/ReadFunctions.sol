@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-2.0
 // Copyright 2024 HB Craft.
 
 pragma solidity 0.8.20;
@@ -36,12 +36,13 @@ abstract contract ReadFunctions is AccessControl, MathFunctions, UniswapOracle {
     }
 
     function getListing(uint256 listingID) external view returns (address, uint256, uint256, uint256) {
+        uint256 referanceRate = getCurrentBTQTRate();
         Listing memory targetListing = listings[listingID];
         return (
             targetListing.nftContractAddress,
             targetListing.nftID,
             targetListing.quantity,
-            convertBTPriceToQT(targetListing.btPricePerFraction)
+            _convertBTPriceToQT(targetListing.btPricePerFraction, referanceRate)
         );
     }
 
@@ -50,7 +51,7 @@ abstract contract ReadFunctions is AccessControl, MathFunctions, UniswapOracle {
     }
 
     function checkListingQTPrice(uint256 listingID) external view returns (uint256) {
-        return convertBTPriceToQT(listings[listingID].btPricePerFraction);
+        return _convertBTPriceToQT(listings[listingID].btPricePerFraction, getReferenceBTQTRate());
     }
 
     // ======================================
@@ -59,16 +60,16 @@ abstract contract ReadFunctions is AccessControl, MathFunctions, UniswapOracle {
     function convertBTToQT(uint256 btAmount, bool basedOnCurrentRate) public view returns (uint256) {
         if (basedOnCurrentRate) {
             uint32[] memory secondsAgos = new uint32[](2);
-            secondsAgos[0] = uint32(uniswapObserveSecondsAgo);
+            secondsAgos[0] = uint32(uniswapObservationTime);
             secondsAgos[1] = 0;
 
-            int56 uniswapObserveSecondsAgoTypeChanged = int56(int256(uniswapObserveSecondsAgo));
+            int56 uniswapObservationTimeTypeChanged = int56(int256(uniswapObservationTime));
 
             (int56[] memory tickCumulatives,) = DEX_POOL.observe(secondsAgos);
             int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
-            int24 tick = int24(tickCumulativesDelta / uniswapObserveSecondsAgoTypeChanged);
+            int24 tick = int24(tickCumulativesDelta / uniswapObservationTimeTypeChanged);
             // Always round to negative infinity
-            if (tickCumulativesDelta < 0 && (tickCumulativesDelta % uniswapObserveSecondsAgoTypeChanged != 0)) tick--;
+            if (tickCumulativesDelta < 0 && (tickCumulativesDelta % uniswapObservationTimeTypeChanged != 0)) tick--;
             return uint256(getQuoteAtTick(tick, uint128(btAmount), BASE_TOKEN_ADDRESS, QUOTE_TOKEN_ADDRESS));
         } else {
             return btAmount * getReferenceBTQTRate();
@@ -122,7 +123,11 @@ abstract contract ReadFunctions is AccessControl, MathFunctions, UniswapOracle {
         else return _roundNumber(price, digitCount - QT_DECIMAL_COUNT);
     }
 
-    function convertBTPriceToQT(uint256 btPrice) public view returns (uint256) {
-        return _roundPrice(convertBTToQT(btPrice, false));
+    function _convertBTPriceToQT(uint256 btPrice, uint256 referanceRate) internal view returns (uint256) {
+        return _roundPrice(btPrice * referanceRate);
+    }
+
+    function convertBTPriceToQT(uint256 btPrice) external view returns (uint256) {
+        return _roundPrice(btPrice * getReferenceBTQTRate());
     }
 }

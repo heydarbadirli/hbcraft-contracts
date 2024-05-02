@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-2.0
 // Copyright 2024 HB Craft.
 
 pragma solidity 0.8.20;
@@ -77,6 +77,14 @@ abstract contract AdministrativeFunctions is AuxiliaryFunctions {
     function setRateSlippageTolerance(uint256 percent) external onlyContractOwner {
         rateSlippageTolerance = percent;
         emit SetRateSlippageTolerance(percent);
+    }
+
+    function setUniswapObservationTime(uint256 inSeconds) external onlyContractOwner {
+        if (inSeconds < MINIMUM_UNISWAP_OBSERVATION_TIME) {
+            revert InvalidArgumentValue("inSeconds", MINIMUM_UNISWAP_OBSERVATION_TIME);
+        }
+        uniswapObservationTime = inSeconds;
+        emit SetUniswapObservationTime(inSeconds);
     }
 
     function setRateLockDuration(uint256 durationInSeconds) external onlyContractOwner {

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: GPL-2.0
 // Copyright 2024 HB Craft.
 
 pragma solidity 0.8.20;
@@ -22,12 +22,16 @@ abstract contract PurchaseFunctions is AuxiliaryFunctions, ReentrancyGuard {
     function safePurchase(uint256 listingID, uint256 quantity, uint256 forMaxPriceInQT)
         external
         nonReentrant
-        ifRateOverMinAcceptableRate
         ifPurchaseCallValid(listingID, quantity)
     {
+        uint256 referanceRate = getReferenceBTQTRate();
+        _checkIfRateOverMinAcceptableRate(referanceRate);
+
+        if (!_checkIfListingValid(listingID, referanceRate)) revert InvalidListing(listingID);
+
         Listing memory targetListing = listings[listingID];
 
-        uint256 currentPriceInQT = convertBTPriceToQT(targetListing.btPricePerFraction);
+        uint256 currentPriceInQT = _convertBTPriceToQT(targetListing.btPricePerFraction, referanceRate);
         if (currentPriceInQT > forMaxPriceInQT) revert PriceInQTIncreased(listingID, forMaxPriceInQT, currentPriceInQT);
 
         _purchase(targetListing, listingID, quantity, currentPriceInQT);

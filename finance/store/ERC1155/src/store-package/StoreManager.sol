@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-SPDX-License-Identifier: Apache-2.0
+SPDX-License-Identifier: GPL-2.0
 */
 
 pragma solidity 0.8.20;
@@ -67,7 +67,9 @@ abstract contract StoreManager {
     uint256 public minimumPriceInQT;
 
     // For getting the rate from Uniswap
-    uint256 public uniswapObserveSecondsAgo;
+    // In seconds
+    uint256 public uniswapObservationTime;
+    uint256 internal constant MINIMUM_UNISWAP_OBSERVATION_TIME = 60;
 
     /**
      * @dev
@@ -76,10 +78,6 @@ abstract contract StoreManager {
      *     - The default rateSlippageTolerance rate is 3%
      */
     uint256 public rateSlippageTolerance;
-    // /**
-    //   * @notice
-    //  */
-    // uint256 public minimumBTQTRate;
 
     constructor(address dexPoolAddress, uint256 _minimumAcceptableRate) {
         DEX_POOL_ADDRESS = dexPoolAddress;
@@ -97,6 +95,6 @@ abstract contract StoreManager {
         rateSlippageTolerance = 3;
         minimumPriceInQT = FIXED_POINT_PRECISION;
         minimumAcceptableRate = _minimumAcceptableRate;
-        uniswapObserveSecondsAgo = 10;
+        uniswapObservationTime = 20 minutes;
     }
 }
