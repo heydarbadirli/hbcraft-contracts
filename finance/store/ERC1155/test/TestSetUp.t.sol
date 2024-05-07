@@ -16,6 +16,7 @@ contract TestSetUp is Test {
     ERC1155Store testStore;
 
     address dexPoolAddress = 0xf1be8652c37cA822F99363C8e18ff1D4E8F45D82;
+    address btAddress = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
     address qtAddress = 0xf0949Dd87D2531D665010d6274F06a357669457a;
     address whaleAddress = 0x176F3DAb24a159341c0509bB36B833E7fdd0a132;
 
@@ -40,7 +41,7 @@ contract TestSetUp is Test {
         quoteToken.transfer(buyer3, buyerBalance * (10 ** qtDecimals));
         vm.stopPrank();
 
-        testStore = new ERC1155Store(dexPoolAddress, startMinRate);
+        testStore = new ERC1155Store(dexPoolAddress, btAddress, qtAddress, startMinRate);
         testStore.changeTreasuryAddress(treasury);
         console.log(testStore.getCurrentBTQTRate());
 

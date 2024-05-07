@@ -4,6 +4,16 @@ pragma solidity ^0.8.0;
 import "./AuxiliaryFunctions.t.sol";
 
 contract TestScenarios is AuxiliaryFunctions {
+    function test_WrongDeploymentArguments() external {
+        ERC1155Store testStore1 = new ERC1155Store(dexPoolAddress, qtAddress, btAddress, startMinRate);
+
+        vm.expectRevert();
+        ERC1155Store testStore2 = new ERC1155Store(dexPoolAddress, btAddress, address(99), startMinRate);
+
+        vm.expectRevert();
+        ERC1155Store testStore3 = new ERC1155Store(dexPoolAddress, address(99), qtAddress, startMinRate);
+    }
+
     function test_List() external {
         testStore.addLister(lister);
         vm.expectRevert();

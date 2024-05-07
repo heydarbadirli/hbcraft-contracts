@@ -79,12 +79,20 @@ abstract contract StoreManager {
      */
     uint256 public rateSlippageTolerance;
 
-    constructor(address dexPoolAddress, uint256 _minimumAcceptableRate) {
+    constructor(address dexPoolAddress, address btAddress, address qtAddress, uint256 _minimumAcceptableRate) {
         DEX_POOL_ADDRESS = dexPoolAddress;
         DEX_POOL = IUniswapV3Pool(dexPoolAddress);
 
-        BASE_TOKEN_ADDRESS = DEX_POOL.token0();
-        QUOTE_TOKEN_ADDRESS = DEX_POOL.token1();
+        address _token0 = DEX_POOL.token0();
+        address _token1 = DEX_POOL.token1();
+
+        require(
+            (btAddress == _token0 && qtAddress == _token1) || (btAddress == _token1 && qtAddress == _token0),
+            "DEX Pool doesn't feature the pair"
+        );
+
+        BASE_TOKEN_ADDRESS = btAddress;
+        QUOTE_TOKEN_ADDRESS = qtAddress;
 
         QUOTE_TOKEN = IERC20Metadata(QUOTE_TOKEN_ADDRESS);
 

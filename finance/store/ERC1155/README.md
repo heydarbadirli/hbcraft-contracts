@@ -1,7 +1,7 @@
 <img src="https://dl.dropboxusercontent.com/scl/fi/82ct56ywcqdr1we6kjum4/ERC20StakingByHBCraft.png?rlkey=2ft8dmou99l36izwp2vcp6i3e&dl=0" alt="ERC20 Staking by HB Craft" align="right" width="200" height="200"/>
 
 # ERC1155 Store with Dynamic Pricing by HB Craft
-![version](https://img.shields.io/badge/version-1.1.0-blue)
+![version](https://img.shields.io/badge/version-1.1.3-blue)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### Contract Introduction
@@ -111,10 +111,12 @@ Most adminstrative functions are available only to `contractOwner` and you can f
 | `cancelListing`                        | `uint256 listingID`                                                               | **2** and the listing owner |
 | `changeTreasuryAddress`                | `address newTreasuryAddress`                                                      | **1**                       |
 | `createListing`                        | `address nftContractAddress` `uint256 nftID` `uint256 quantity` `uint256 btPrice` | **0**                       |
+| `purchase`                             | `uint256 listingID` `uint256 quantity`                                            | everyone                    |
 | `removeLister`                         | `address listerAddress`                                                           | **2**                       |
 | `resetLockPeriod`                      |                                                                                   | **2**                       |
 | `safePurchase`                         | `uint256 listingID` `uint256 quantity` `uint256 forMaxPriceInQT`                  | everyone                    |
 | `setBTQTRate`                          |                                                                                   | **2**                       |
+| `setListingBTPrice`                    | `uint256 listingID` `uint256 btAmount`                                            | **2** and the listing owner |
 | `setMinimumPriceInQT`                  | `uint256 qtAmount`                                                                | **2**                       |
 | `setRateLockDuration`                  | `uint256 durationInSeconds`                                                       | **2**                       |
 | `setRatePeriodSystemStatus`            | `bool isEnabled`                                                                  | **2**                       |
@@ -138,7 +140,7 @@ Most adminstrative functions are available only to `contractOwner` and you can f
 | `checkRatePeriod`                      |                                                  |
 | `checkTotalListingCount`               |                                                  |
 | `convertBTPriceToQT`                   | `uint256 btPrice`                                |
-| `convertBTToQT`                        | `uint256 btAmount` `bool basedOnCurrentRate`     |
+| `convertBTToQT`                          | `uint256 btAmount` `bool basedOnCurrentRate`     |
 | `getActiveListingIDs`                  |                                                  |
 | `getAllListingProperties`              |                                                  |
 | `getAllValidListings`                  |                                                  |

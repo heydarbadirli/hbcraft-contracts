@@ -9,8 +9,8 @@ import "./store-package/PurchaseFunctions.sol";
 /// @title ERC1155 Store by HB Craft (v1.1.0)
 /// @author Heydar Badirli
 contract ERC1155Store is AdministrativeFunctions, PurchaseFunctions {
-    constructor(address dexPoolAddress, uint256 _minimumAcceptableRate)
-        StoreManager(dexPoolAddress, _minimumAcceptableRate)
+    constructor(address dexPoolAddress, address btAddress, address qtAddress, uint256 _minimumAcceptableRate)
+        StoreManager(dexPoolAddress, btAddress, qtAddress, _minimumAcceptableRate)
         WriteFunctions()
     {}
 }
