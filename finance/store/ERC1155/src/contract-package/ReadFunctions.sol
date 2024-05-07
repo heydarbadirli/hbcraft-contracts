@@ -57,6 +57,10 @@ abstract contract ReadFunctions is AccessControl, MathFunctions, UniswapOracle {
     // ======================================
     // =           Price Related            =
     // ======================================
+    /**
+     * Original function: consult(address pool, uint32 secondsAgo) from OracleLibrary.sol at:
+     * https://github.com/Uniswap/v3-periphery/blob/v1.3.0/contracts/libraries/OracleLibrary.sol
+     */
     function convertBTToQT(uint256 btAmount, bool basedOnCurrentRate) public view returns (uint256) {
         if (basedOnCurrentRate) {
             uint32[] memory secondsAgos = new uint32[](2);
@@ -70,7 +74,7 @@ abstract contract ReadFunctions is AccessControl, MathFunctions, UniswapOracle {
             int24 tick = int24(tickCumulativesDelta / uniswapObservationTimeTypeChanged);
             // Always round to negative infinity
             if (tickCumulativesDelta < 0 && (tickCumulativesDelta % uniswapObservationTimeTypeChanged != 0)) tick--;
-            return uint256(getQuoteAtTick(tick, uint128(btAmount), BASE_TOKEN_ADDRESS, QUOTE_TOKEN_ADDRESS));
+            return uint256(getQuoteAtTick(tick, uint128(btAmount), BASE_TOKEN, address(QUOTE_TOKEN)));
         } else {
             return btAmount * getReferenceBTQTRate();
         }

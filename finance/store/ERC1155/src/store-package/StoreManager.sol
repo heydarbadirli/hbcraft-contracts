@@ -22,12 +22,10 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 abstract contract StoreManager {
-    address public immutable DEX_POOL_ADDRESS;
-    address internal immutable BASE_TOKEN_ADDRESS;
-    address internal immutable QUOTE_TOKEN_ADDRESS;
+    IUniswapV3Pool public immutable DEX_POOL;
+    IERC20Metadata public immutable QUOTE_TOKEN;
 
-    IUniswapV3Pool internal immutable DEX_POOL;
-    IERC20Metadata internal immutable QUOTE_TOKEN;
+    address internal immutable BASE_TOKEN;
 
     uint256 internal immutable FIXED_POINT_PRECISION;
     uint256 internal immutable QT_DECIMAL_COUNT;
@@ -80,7 +78,6 @@ abstract contract StoreManager {
     uint256 public rateSlippageTolerance;
 
     constructor(address dexPoolAddress, address btAddress, address qtAddress, uint256 _minimumAcceptableRate) {
-        DEX_POOL_ADDRESS = dexPoolAddress;
         DEX_POOL = IUniswapV3Pool(dexPoolAddress);
 
         address _token0 = DEX_POOL.token0();
@@ -91,10 +88,9 @@ abstract contract StoreManager {
             "DEX Pool doesn't feature the pair"
         );
 
-        BASE_TOKEN_ADDRESS = btAddress;
-        QUOTE_TOKEN_ADDRESS = qtAddress;
+        BASE_TOKEN = btAddress;
 
-        QUOTE_TOKEN = IERC20Metadata(QUOTE_TOKEN_ADDRESS);
+        QUOTE_TOKEN = IERC20Metadata(qtAddress);
 
         QT_DECIMAL_COUNT = uint256(QUOTE_TOKEN.decimals());
         FIXED_POINT_PRECISION = 10 ** QT_DECIMAL_COUNT;
